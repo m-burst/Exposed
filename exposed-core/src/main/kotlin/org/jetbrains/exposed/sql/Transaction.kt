@@ -252,7 +252,9 @@ open class Transaction(
 
             override fun arguments(): Iterable<Iterable<Pair<IColumnType<*>, Any?>>> = listOf(
                 args.map { (columnType, value) ->
-                    columnType.apply { nullable = true } to value
+                    columnType.apply {
+                        if (value == null && !nullable) nullable = true
+                    } to value
                 }
             )
         })

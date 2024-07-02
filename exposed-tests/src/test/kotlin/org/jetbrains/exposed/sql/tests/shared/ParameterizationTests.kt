@@ -1,6 +1,7 @@
 package org.jetbrains.exposed.sql.tests.shared
 
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.statements.InsertStatement
 import org.jetbrains.exposed.sql.statements.StatementType
 import org.jetbrains.exposed.sql.tests.DatabaseTestsBase
 import org.jetbrains.exposed.sql.tests.TestDB
@@ -150,6 +151,47 @@ class ParameterizationTests : DatabaseTestsBase() {
             )
 
             assertNull(TempTable.selectAll().single()[TempTable.name])
+        }
+    }
+
+    @Test
+    fun testExistingColumnNullabilityWithStatementParameters() {
+        val tester = object : Table("tester") {
+            val id = integer("id").autoIncrement()
+            val item = varchar("item", 32)
+            override val primaryKey = PrimaryKey(id)
+        }
+
+        withTables(tester) { testDb ->
+            tester.columns.forEach {
+                assertFalse(it.columnType.nullable)
+            }
+
+            val insertStatement1 = InsertStatement<Number>(tester).apply {
+                if (testDb != TestDB.SQLSERVER) this[tester.id] = 99
+                this[tester.item] = "Insert 1"
+            }
+            exec(insertStatement1.prepareSQL(this), args = insertStatement1.arguments().first())
+
+            tester.columns.forEach {
+                assertFalse(it.columnType.nullable)
+            }
+
+            val insertStatement2 = InsertStatement<Number>(tester).apply {
+                // omitting auto-increment should omit value in insert statement because column is NOT NULL
+                this[tester.item] = "Insert 2"
+            }
+            val insertSQL = insertStatement2.prepareSQL(this)
+            val values = insertSQL.substringAfter(" VALUES ").trim('(', ')').split(", ")
+            // Oracle manually inserts next sequence value as id
+            val expectedValues = if (testDb in TestDB.ALL_ORACLE_LIKE) 2 else 1
+            assertEquals(expectedValues, values.size)
+
+            exec(insertSQL, args = insertStatement2.arguments().first())
+
+            tester.columns.forEach {
+                assertFalse(it.columnType.nullable)
+            }
         }
     }
 
