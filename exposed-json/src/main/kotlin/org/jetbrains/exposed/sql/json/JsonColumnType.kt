@@ -26,6 +26,9 @@ open class JsonColumnType<T : Any>(
 ) : ColumnType<T>(), JsonColumnMarker {
     override val usesBinaryFormat: Boolean = false
 
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = JsonColumnType(serialize, deserialize).also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.jsonType()
 
     @Suppress("UNCHECKED_CAST")

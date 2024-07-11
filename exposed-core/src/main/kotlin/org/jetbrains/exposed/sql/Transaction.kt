@@ -251,11 +251,37 @@ open class Transaction(
             override fun prepareSQL(transaction: Transaction, prepared: Boolean): String = stmt
 
             override fun arguments(): Iterable<Iterable<Pair<IColumnType<*>, Any?>>> = listOf(
+                // original
+//                args.map { (columnType, value) ->
+//                    columnType.apply { nullable = true } to value
+//                }
+
+                // option 1 - revert fix #1973 (and force exec users to specify nullability?)
+                // no other changes to source code
+                // testNullParameterWithLogger() will then fail
+//                args
+
+                // option 2 - only mutate if necessary - bandage fix
+                // no other changes to source code
                 args.map { (columnType, value) ->
                     columnType.apply {
                         if (value == null && !nullable) nullable = true
                     } to value
                 }
+
+                // option 3 - extract private cloning utils from Table class
+                // changes only in Table.kt
+//                args.map { (columnType, value) ->
+//                    val temp = columnType.cloneAsBaseType().apply { nullable = true }
+//                    temp to value
+//                }
+
+                // option 4 - add copy() to IColumnType interface so object copied by value not reference
+                // changes in every class that implements IColumnType
+//                args.map { (columnType, value) ->
+//                    val temp = columnType.copy().apply { nullable = true }
+//                    temp to value
+//                }
             )
         })
     }

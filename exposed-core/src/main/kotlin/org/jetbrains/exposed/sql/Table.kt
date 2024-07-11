@@ -1510,6 +1510,23 @@ open class Table(name: String = "") : ColumnSet(), DdlAware {
     object Dual : Table("dual")
 }
 
+// OPTION 3 - extracted duplicate functions from private Table methods above
+fun <T : Any> T.clone(replaceArgs: Map<KProperty1<T, *>, Any> = emptyMap()): T = javaClass.kotlin.run {
+    val consParams = primaryConstructor!!.parameters
+    val mutableProperties = memberProperties.filterIsInstance<KMutableProperty1<T, Any?>>()
+    val allValues = memberProperties
+        .filter { it in mutableProperties || it.name in consParams.map(KParameter::name) }
+        .associate { it.name to (replaceArgs[it] ?: it.get(this@clone)) }
+    primaryConstructor!!.callBy(consParams.associateWith { allValues[it.name] }).also { newInstance ->
+        for (prop in mutableProperties) {
+            prop.set(newInstance, allValues[prop.name])
+        }
+    }
+}
+
+// OPTION 3 - extracted duplicate functions from private Table methods above
+fun <T> IColumnType<T>.cloneAsBaseType(): IColumnType<T> = ((this as? AutoIncColumnType)?.delegate ?: this).clone()
+
 /** Returns the list of tables to which the columns in this column set belong. */
 fun ColumnSet.targetTables(): List<Table> = when (this) {
     is Alias<*> -> listOf(this.delegate)

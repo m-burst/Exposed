@@ -8,6 +8,11 @@ public final class org/jetbrains/exposed/crypt/Algorithms {
 
 public final class org/jetbrains/exposed/crypt/EncryptedBinaryColumnType : org/jetbrains/exposed/sql/BinaryColumnType {
 	public fun <init> (Lorg/jetbrains/exposed/crypt/Encryptor;I)V
+	public fun copy ()Lorg/jetbrains/exposed/crypt/EncryptedBinaryColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/BasicBinaryColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/BinaryColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
@@ -22,6 +27,10 @@ public final class org/jetbrains/exposed/crypt/EncryptedBinaryColumnType : org/j
 
 public final class org/jetbrains/exposed/crypt/EncryptedVarCharColumnType : org/jetbrains/exposed/sql/VarCharColumnType {
 	public fun <init> (Lorg/jetbrains/exposed/crypt/Encryptor;I)V
+	public fun copy ()Lorg/jetbrains/exposed/crypt/EncryptedVarCharColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/VarCharColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;

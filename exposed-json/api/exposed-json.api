@@ -37,6 +37,9 @@ public final class org/jetbrains/exposed/sql/json/JsonBColumnTypeKt {
 
 public class org/jetbrains/exposed/sql/json/JsonColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/JsonColumnMarker {
 	public fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/json/JsonColumnType;
 	public final fun getDeserialize ()Lkotlin/jvm/functions/Function1;
 	public final fun getSerialize ()Lkotlin/jvm/functions/Function1;
 	public fun getUsesBinaryFormat ()Z

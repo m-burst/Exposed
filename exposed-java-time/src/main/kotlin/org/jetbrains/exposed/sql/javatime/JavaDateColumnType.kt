@@ -133,6 +133,9 @@ private val LocalDate.millis get() = atStartOfDay(ZoneId.systemDefault()).toEpoc
  */
 @Suppress("MagicNumber")
 class JavaLocalDateColumnType : ColumnType<LocalDate>(), IDateColumnType {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = JavaLocalDateColumnType().also { it.nullable = nullable }
+
     override val hasTimePart: Boolean = false
 
     override fun sqlType(): String = currentDialect.dataTypeProvider.dateType()
@@ -184,6 +187,10 @@ class JavaLocalDateColumnType : ColumnType<LocalDate>(), IDateColumnType {
 @Suppress("MagicNumber")
 class JavaLocalDateTimeColumnType : ColumnType<LocalDateTime>(), IDateColumnType {
     override val hasTimePart: Boolean = true
+
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = JavaLocalDateTimeColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.dateTimeType()
 
     override fun nonNullValueToString(value: LocalDateTime): String {
@@ -257,6 +264,9 @@ class JavaLocalDateTimeColumnType : ColumnType<LocalDateTime>(), IDateColumnType
 class JavaLocalTimeColumnType : ColumnType<LocalTime>(), IDateColumnType {
     override val hasTimePart: Boolean = true
 
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = JavaLocalTimeColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.timeType()
 
     override fun nonNullValueToString(value: LocalTime): String {
@@ -307,6 +317,10 @@ class JavaLocalTimeColumnType : ColumnType<LocalTime>(), IDateColumnType {
  */
 class JavaInstantColumnType : ColumnType<Instant>(), IDateColumnType {
     override val hasTimePart: Boolean = true
+
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = JavaInstantColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.dateTimeType()
 
     override fun nonNullValueToString(value: Instant): String {
@@ -365,6 +379,9 @@ class JavaInstantColumnType : ColumnType<Instant>(), IDateColumnType {
 class JavaOffsetDateTimeColumnType : ColumnType<OffsetDateTime>(), IDateColumnType {
     override val hasTimePart: Boolean = true
 
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = JavaOffsetDateTimeColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.timestampWithTimeZoneType()
 
     override fun nonNullValueToString(value: OffsetDateTime): String = when (currentDialect) {
@@ -420,6 +437,9 @@ class JavaOffsetDateTimeColumnType : ColumnType<OffsetDateTime>(), IDateColumnTy
  * @sample org.jetbrains.exposed.sql.javatime.duration
  */
 class JavaDurationColumnType : ColumnType<Duration>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = JavaDurationColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.longType()
 
     override fun nonNullValueToString(value: Duration): String = "'${value.toNanos()}'"

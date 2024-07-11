@@ -16,6 +16,9 @@ public final class org/jetbrains/exposed/sql/jodatime/Date : org/jetbrains/expos
 
 public final class org/jetbrains/exposed/sql/jodatime/DateColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/IDateColumnType {
 	public fun <init> (Z)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/jodatime/DateColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getHasTimePart ()Z
 	public final fun getTime ()Z
@@ -59,6 +62,9 @@ public final class org/jetbrains/exposed/sql/jodatime/DateFunctionsKt {
 
 public final class org/jetbrains/exposed/sql/jodatime/DateTimeWithTimeZoneColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/IDateColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/jodatime/DateTimeWithTimeZoneColumnType;
 	public fun getHasTimePart ()Z
 	public synthetic fun nonNullValueAsDefaultString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueAsDefaultString (Lorg/joda/time/DateTime;)Ljava/lang/String;

@@ -174,6 +174,9 @@ public final class org/jetbrains/exposed/sql/AndOp : org/jetbrains/exposed/sql/C
 public final class org/jetbrains/exposed/sql/ArrayColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> (Lorg/jetbrains/exposed/sql/ColumnType;Ljava/lang/Integer;)V
 	public synthetic fun <init> (Lorg/jetbrains/exposed/sql/ColumnType;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun copy ()Lorg/jetbrains/exposed/sql/ArrayColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public final fun getDelegate ()Lorg/jetbrains/exposed/sql/ColumnType;
 	public final fun getDelegateType ()Ljava/lang/String;
 	public final fun getMaximumCardinality ()Ljava/lang/Integer;
@@ -194,6 +197,8 @@ public final class org/jetbrains/exposed/sql/ArrayColumnType : org/jetbrains/exp
 
 public final class org/jetbrains/exposed/sql/AutoIncColumnType : org/jetbrains/exposed/sql/IColumnType {
 	public fun <init> (Lorg/jetbrains/exposed/sql/ColumnType;Ljava/lang/String;Ljava/lang/String;)V
+	public fun copy ()Lorg/jetbrains/exposed/sql/AutoIncColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAutoincSeq ()Ljava/lang/String;
 	public final fun getDelegate ()Lorg/jetbrains/exposed/sql/ColumnType;
@@ -224,6 +229,9 @@ public final class org/jetbrains/exposed/sql/Avg : org/jetbrains/exposed/sql/Fun
 
 public class org/jetbrains/exposed/sql/BasicBinaryColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public fun copy ()Lorg/jetbrains/exposed/sql/BasicBinaryColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueToString ([B)Ljava/lang/String;
 	public fun readObject (Ljava/sql/ResultSet;I)Ljava/lang/Object;
@@ -254,6 +262,10 @@ public abstract class org/jetbrains/exposed/sql/BiCompositeColumn : org/jetbrain
 
 public class org/jetbrains/exposed/sql/BinaryColumnType : org/jetbrains/exposed/sql/BasicBinaryColumnType {
 	public fun <init> (I)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/BasicBinaryColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/BinaryColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getLength ()I
 	public fun hashCode ()I
@@ -266,6 +278,9 @@ public final class org/jetbrains/exposed/sql/BlobColumnType : org/jetbrains/expo
 	public fun <init> ()V
 	public fun <init> (Z)V
 	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun copy ()Lorg/jetbrains/exposed/sql/BlobColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public final fun getUseObjectIdentifier ()Z
 	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueToString (Lorg/jetbrains/exposed/sql/statements/api/ExposedBlob;)Ljava/lang/String;
@@ -280,6 +295,9 @@ public final class org/jetbrains/exposed/sql/BlobColumnType : org/jetbrains/expo
 public final class org/jetbrains/exposed/sql/BooleanColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/BooleanColumnType$Companion;
 	public fun <init> ()V
+	public fun copy ()Lorg/jetbrains/exposed/sql/BooleanColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueToString (Z)Ljava/lang/String;
 	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
@@ -294,6 +312,9 @@ public final class org/jetbrains/exposed/sql/BooleanColumnType$Companion {
 
 public final class org/jetbrains/exposed/sql/ByteColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public fun copy ()Lorg/jetbrains/exposed/sql/ByteColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun sqlType ()Ljava/lang/String;
 	public fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Byte;
 	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
@@ -333,6 +354,9 @@ public class org/jetbrains/exposed/sql/CharColumnType : org/jetbrains/exposed/sq
 	public fun <init> ()V
 	public fun <init> (ILjava/lang/String;)V
 	public synthetic fun <init> (ILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun copy ()Lorg/jetbrains/exposed/sql/CharColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getColLength ()I
 	public fun hashCode ()I
@@ -349,6 +373,9 @@ public final class org/jetbrains/exposed/sql/CharLength : org/jetbrains/exposed/
 
 public final class org/jetbrains/exposed/sql/CharacterColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public fun copy ()Lorg/jetbrains/exposed/sql/CharacterColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun nonNullValueToString (C)Ljava/lang/String;
 	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun notNullValueToDB (C)Ljava/lang/Object;
@@ -465,6 +492,7 @@ public abstract class org/jetbrains/exposed/sql/ColumnType : org/jetbrains/expos
 	public fun <init> ()V
 	public fun <init> (Z)V
 	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public abstract fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getNullable ()Z
 	public fun hashCode ()I
@@ -566,6 +594,9 @@ public final class org/jetbrains/exposed/sql/CurrentRowWindowFrameBound : org/je
 public final class org/jetbrains/exposed/sql/CustomEnumerationColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/CustomEnumerationColumnType$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/CustomEnumerationColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public final fun getFromDb ()Lkotlin/jvm/functions/Function1;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getSql ()Ljava/lang/String;
@@ -723,6 +754,9 @@ public final class org/jetbrains/exposed/sql/DdlAware$DefaultImpls {
 public final class org/jetbrains/exposed/sql/DecimalColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/DecimalColumnType$Companion;
 	public fun <init> (II)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/DecimalColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getPrecision ()I
 	public final fun getScale ()I
@@ -753,6 +787,9 @@ public final class org/jetbrains/exposed/sql/DivideOp$Companion {
 
 public final class org/jetbrains/exposed/sql/DoubleColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/DoubleColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun sqlType ()Ljava/lang/String;
 	public fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Double;
 	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
@@ -775,6 +812,9 @@ public final class org/jetbrains/exposed/sql/EmptySizedIterable : java/util/Iter
 
 public final class org/jetbrains/exposed/sql/EntityIDColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> (Lorg/jetbrains/exposed/sql/Column;)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/EntityIDColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getIdColumn ()Lorg/jetbrains/exposed/sql/Column;
 	public fun hashCode ()I
@@ -790,6 +830,9 @@ public final class org/jetbrains/exposed/sql/EntityIDColumnType : org/jetbrains/
 
 public final class org/jetbrains/exposed/sql/EnumerationColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> (Lkotlin/reflect/KClass;)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/EnumerationColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getKlass ()Lkotlin/reflect/KClass;
 	public fun hashCode ()I
@@ -803,6 +846,9 @@ public final class org/jetbrains/exposed/sql/EnumerationColumnType : org/jetbrai
 public final class org/jetbrains/exposed/sql/EnumerationNameColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/EnumerationNameColumnType$Companion;
 	public fun <init> (Lkotlin/reflect/KClass;I)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/EnumerationNameColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getColLength ()I
 	public final fun getKlass ()Lkotlin/reflect/KClass;
@@ -928,6 +974,9 @@ public final class org/jetbrains/exposed/sql/FirstValue : org/jetbrains/exposed/
 
 public final class org/jetbrains/exposed/sql/FloatColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/FloatColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public fun sqlType ()Ljava/lang/String;
 	public fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Float;
 	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
@@ -984,6 +1033,7 @@ public final class org/jetbrains/exposed/sql/GroupConcat : org/jetbrains/exposed
 }
 
 public abstract interface class org/jetbrains/exposed/sql/IColumnType {
+	public abstract fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
 	public abstract fun getNullable ()Z
 	public abstract fun nonNullValueAsDefaultString (Ljava/lang/Object;)Ljava/lang/String;
 	public abstract fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
@@ -1309,6 +1359,9 @@ public final class org/jetbrains/exposed/sql/Index : org/jetbrains/exposed/sql/D
 
 public final class org/jetbrains/exposed/sql/IntegerColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/IntegerColumnType;
 	public fun sqlType ()Ljava/lang/String;
 	public fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Integer;
 	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
@@ -1501,6 +1554,9 @@ public final class org/jetbrains/exposed/sql/Locate : org/jetbrains/exposed/sql/
 
 public final class org/jetbrains/exposed/sql/LongColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/LongColumnType;
 	public fun sqlType ()Ljava/lang/String;
 	public fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Long;
 	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
@@ -2079,6 +2135,9 @@ public final class org/jetbrains/exposed/sql/SetOperationsKt {
 
 public final class org/jetbrains/exposed/sql/ShortColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/ShortColumnType;
 	public fun sqlType ()Ljava/lang/String;
 	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Short;
@@ -2461,6 +2520,9 @@ public final class org/jetbrains/exposed/sql/Table$PrimaryKey {
 }
 
 public final class org/jetbrains/exposed/sql/TableKt {
+	public static final fun clone (Ljava/lang/Object;Ljava/util/Map;)Ljava/lang/Object;
+	public static synthetic fun clone$default (Ljava/lang/Object;Ljava/util/Map;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun cloneAsBaseType (Lorg/jetbrains/exposed/sql/IColumnType;)Lorg/jetbrains/exposed/sql/IColumnType;
 	public static final fun crossJoin (Lorg/jetbrains/exposed/sql/ColumnSet;Lorg/jetbrains/exposed/sql/ColumnSet;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lorg/jetbrains/exposed/sql/Join;
 	public static synthetic fun crossJoin$default (Lorg/jetbrains/exposed/sql/ColumnSet;Lorg/jetbrains/exposed/sql/ColumnSet;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lorg/jetbrains/exposed/sql/Join;
 	public static final fun fullJoin (Lorg/jetbrains/exposed/sql/ColumnSet;Lorg/jetbrains/exposed/sql/ColumnSet;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lorg/jetbrains/exposed/sql/Join;
@@ -2478,6 +2540,9 @@ public class org/jetbrains/exposed/sql/TextColumnType : org/jetbrains/exposed/sq
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Z)V
 	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/TextColumnType;
 	public final fun getEagerLoading ()Z
 	public fun preciseType ()Ljava/lang/String;
 	public fun readObject (Ljava/sql/ResultSet;I)Ljava/lang/Object;
@@ -2552,6 +2617,9 @@ public final class org/jetbrains/exposed/sql/Trim : org/jetbrains/exposed/sql/Fu
 
 public final class org/jetbrains/exposed/sql/UByteColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/UByteColumnType;
 	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun notNullValueToDB-7apg3OU (B)Ljava/lang/Object;
 	public fun setParameter (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;ILjava/lang/Object;)V
@@ -2562,6 +2630,9 @@ public final class org/jetbrains/exposed/sql/UByteColumnType : org/jetbrains/exp
 
 public final class org/jetbrains/exposed/sql/UIntegerColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/UIntegerColumnType;
 	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun notNullValueToDB-WZ4Q5Ns (I)Ljava/lang/Object;
 	public fun setParameter (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;ILjava/lang/Object;)V
@@ -2572,6 +2643,9 @@ public final class org/jetbrains/exposed/sql/UIntegerColumnType : org/jetbrains/
 
 public final class org/jetbrains/exposed/sql/ULongColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/ULongColumnType;
 	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun notNullValueToDB-VKZWuLQ (J)Ljava/lang/Object;
 	public fun sqlType ()Ljava/lang/String;
@@ -2581,6 +2655,9 @@ public final class org/jetbrains/exposed/sql/ULongColumnType : org/jetbrains/exp
 
 public final class org/jetbrains/exposed/sql/UShortColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/UShortColumnType;
 	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun notNullValueToDB-xj2QHRw (S)Ljava/lang/Object;
 	public fun setParameter (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;ILjava/lang/Object;)V
@@ -2592,6 +2669,9 @@ public final class org/jetbrains/exposed/sql/UShortColumnType : org/jetbrains/ex
 public final class org/jetbrains/exposed/sql/UUIDColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/UUIDColumnType$Companion;
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/UUIDColumnType;
 	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueToString (Ljava/util/UUID;)Ljava/lang/String;
 	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
@@ -2653,6 +2733,9 @@ public class org/jetbrains/exposed/sql/VarCharColumnType : org/jetbrains/exposed
 	public fun <init> ()V
 	public fun <init> (ILjava/lang/String;)V
 	public synthetic fun <init> (ILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/VarCharColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getColLength ()I
 	public fun hashCode ()I

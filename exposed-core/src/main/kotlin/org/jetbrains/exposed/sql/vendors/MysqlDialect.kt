@@ -183,12 +183,8 @@ internal open class MysqlFunctionProvider : FunctionProvider() {
         return insertStatement.replace("INSERT", "REPLACE")
     }
 
-    private object CharColumnType : StringColumnType() {
-        override fun sqlType(): String = "CHAR"
-    }
-
     override fun cast(expr: Expression<*>, type: IColumnType<*>, builder: QueryBuilder) = when (type) {
-        is StringColumnType -> super.cast(expr, CharColumnType, builder)
+        is StringColumnType -> super.cast(expr, CharacterColumnType(), builder)
         else -> super.cast(expr, type, builder)
     }
 

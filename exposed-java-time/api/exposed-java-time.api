@@ -79,6 +79,9 @@ public final class org/jetbrains/exposed/sql/javatime/JavaDateFunctionsKt {
 public final class org/jetbrains/exposed/sql/javatime/JavaDurationColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/javatime/JavaDurationColumnType$Companion;
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/javatime/JavaDurationColumnType;
 	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueToString (Ljava/time/Duration;)Ljava/lang/String;
 	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
@@ -95,6 +98,9 @@ public final class org/jetbrains/exposed/sql/javatime/JavaDurationColumnType$Com
 public final class org/jetbrains/exposed/sql/javatime/JavaInstantColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/IDateColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/javatime/JavaInstantColumnType$Companion;
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/javatime/JavaInstantColumnType;
 	public fun getHasTimePart ()Z
 	public synthetic fun nonNullValueAsDefaultString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueAsDefaultString (Ljava/time/Instant;)Ljava/lang/String;
@@ -114,6 +120,9 @@ public final class org/jetbrains/exposed/sql/javatime/JavaInstantColumnType$Comp
 public final class org/jetbrains/exposed/sql/javatime/JavaLocalDateColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/IDateColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/javatime/JavaLocalDateColumnType$Companion;
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/javatime/JavaLocalDateColumnType;
 	public fun getHasTimePart ()Z
 	public synthetic fun nonNullValueAsDefaultString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueAsDefaultString (Ljava/time/LocalDate;)Ljava/lang/String;
@@ -132,6 +141,9 @@ public final class org/jetbrains/exposed/sql/javatime/JavaLocalDateColumnType$Co
 public final class org/jetbrains/exposed/sql/javatime/JavaLocalDateTimeColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/IDateColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/javatime/JavaLocalDateTimeColumnType$Companion;
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/javatime/JavaLocalDateTimeColumnType;
 	public fun getHasTimePart ()Z
 	public synthetic fun nonNullValueAsDefaultString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueAsDefaultString (Ljava/time/LocalDateTime;)Ljava/lang/String;
@@ -151,6 +163,9 @@ public final class org/jetbrains/exposed/sql/javatime/JavaLocalDateTimeColumnTyp
 public final class org/jetbrains/exposed/sql/javatime/JavaLocalTimeColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/IDateColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/javatime/JavaLocalTimeColumnType$Companion;
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/javatime/JavaLocalTimeColumnType;
 	public fun getHasTimePart ()Z
 	public synthetic fun nonNullValueAsDefaultString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueAsDefaultString (Ljava/time/LocalTime;)Ljava/lang/String;
@@ -169,6 +184,9 @@ public final class org/jetbrains/exposed/sql/javatime/JavaLocalTimeColumnType$Co
 public final class org/jetbrains/exposed/sql/javatime/JavaOffsetDateTimeColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/IDateColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/javatime/JavaOffsetDateTimeColumnType$Companion;
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/javatime/JavaOffsetDateTimeColumnType;
 	public fun getHasTimePart ()Z
 	public synthetic fun nonNullValueAsDefaultString (Ljava/lang/Object;)Ljava/lang/String;
 	public fun nonNullValueAsDefaultString (Ljava/time/OffsetDateTime;)Ljava/lang/String;

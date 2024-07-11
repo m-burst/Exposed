@@ -82,6 +82,9 @@ class BooleanColumnTypeTests : DatabaseTestsBase() {
     class CharBooleanColumnType(
         private val characterColumnType: VarCharColumnType = VarCharColumnType(1),
     ) : ColumnType<Boolean>() {
+        // OPTION 4 - allow column type to be copied by value
+        override fun copy() = CharBooleanColumnType(characterColumnType.copy()).also { it.nullable = nullable }
+
         override fun sqlType(): String = characterColumnType.preciseType()
 
         override fun valueFromDB(value: Any): Boolean =

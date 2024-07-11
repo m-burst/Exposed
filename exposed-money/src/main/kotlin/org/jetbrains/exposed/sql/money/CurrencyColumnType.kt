@@ -15,6 +15,8 @@ import javax.money.Monetary
  */
 @Suppress("MagicNumber")
 class CurrencyColumnType : ColumnType<CurrencyUnit>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = CurrencyColumnType().also { it.nullable = nullable }
 
     override fun sqlType(): String = currentDialect.dataTypeProvider.varcharType(colLength)
 

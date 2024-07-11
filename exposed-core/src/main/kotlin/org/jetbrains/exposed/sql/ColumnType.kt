@@ -28,6 +28,9 @@ interface IColumnType<T> {
     /** Returns `true` if the column type is nullable, `false` otherwise. */
     var nullable: Boolean
 
+    // OPTION 4 - allow column type to be copied by value
+    fun copy(): IColumnType<T>
+
     /** Returns the SQL type of this column. */
     fun sqlType(): String
 
@@ -124,6 +127,8 @@ abstract class ColumnType<T>(override var nullable: Boolean = false) : IColumnTy
     }
 
     override fun hashCode(): Int = 31 * javaClass.hashCode() + nullable.hashCode()
+
+    abstract override fun copy(): ColumnType<T>
 }
 
 /**
@@ -135,6 +140,8 @@ class AutoIncColumnType<T>(
     private val _autoincSeq: String?,
     private val fallbackSeqName: String
 ) : IColumnType<T> by delegate {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = AutoIncColumnType(delegate.copy(), _autoincSeq, fallbackSeqName).also { it.nullable = nullable }
 
     private val nextValValue = run {
         val sequence = Sequence(_autoincSeq ?: fallbackSeqName)
@@ -217,6 +224,9 @@ class EntityIDColumnType<T : Comparable<T>>(
         require(idColumn.table is IdTable<*>) { "EntityId supported only for IdTables" }
     }
 
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = EntityIDColumnType(idColumn).also { it.nullable = nullable }
+
     override fun sqlType(): String = idColumn.columnType.sqlType()
 
     override fun notNullValueToDB(value: EntityID<T>): Any = idColumn.columnType.notNullValueToDB(value.value)
@@ -253,6 +263,9 @@ class EntityIDColumnType<T : Comparable<T>>(
  * Numeric column for storing 1-byte integers.
  */
 class ByteColumnType : ColumnType<Byte>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = ByteColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.byteType()
 
     override fun valueFromDB(value: Any): Byte = when (value) {
@@ -271,6 +284,9 @@ class ByteColumnType : ColumnType<Byte>() {
  * between 0 and [UByte.MAX_VALUE] inclusive.
  */
 class UByteColumnType : ColumnType<UByte>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = UByteColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.ubyteType()
 
     override fun valueFromDB(value: Any): UByte {
@@ -298,6 +314,9 @@ class UByteColumnType : ColumnType<UByte>() {
  * Numeric column for storing 2-byte integers.
  */
 class ShortColumnType : ColumnType<Short>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = ShortColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.shortType()
     override fun valueFromDB(value: Any): Short = when (value) {
         is Short -> value
@@ -314,6 +333,9 @@ class ShortColumnType : ColumnType<Short>() {
  * integer type with a check constraint that ensures storage of only values between 0 and [UShort.MAX_VALUE] inclusive.
  */
 class UShortColumnType : ColumnType<UShort>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = UShortColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.ushortType()
     override fun valueFromDB(value: Any): UShort {
         return when (value) {
@@ -340,6 +362,9 @@ class UShortColumnType : ColumnType<UShort>() {
  * Numeric column for storing 4-byte integers.
  */
 class IntegerColumnType : ColumnType<Int>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = IntegerColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.integerType()
     override fun valueFromDB(value: Any): Int = when (value) {
         is Int -> value
@@ -357,6 +382,9 @@ class IntegerColumnType : ColumnType<Int>() {
  * between 0 and [UInt.MAX_VALUE] inclusive.
  */
 class UIntegerColumnType : ColumnType<UInt>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = UIntegerColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.uintegerType()
     override fun valueFromDB(value: Any): UInt {
         return when (value) {
@@ -383,6 +411,9 @@ class UIntegerColumnType : ColumnType<UInt>() {
  * Numeric column for storing 8-byte integers.
  */
 class LongColumnType : ColumnType<Long>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = LongColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.longType()
     override fun valueFromDB(value: Any): Long = when (value) {
         is Long -> value
@@ -396,6 +427,9 @@ class LongColumnType : ColumnType<Long>() {
  * Numeric column for storing unsigned 8-byte integers.
  */
 class ULongColumnType : ColumnType<ULong>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = ULongColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.ulongType()
     override fun valueFromDB(value: Any): ULong {
         return when (value) {
@@ -435,6 +469,9 @@ class ULongColumnType : ColumnType<ULong>() {
  * Numeric column for storing 4-byte (single precision) floating-point numbers.
  */
 class FloatColumnType : ColumnType<Float>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = FloatColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.floatType()
     override fun valueFromDB(value: Any): Float = when (value) {
         is Float -> value
@@ -448,6 +485,9 @@ class FloatColumnType : ColumnType<Float>() {
  * Numeric column for storing 8-byte (double precision) floating-point numbers.
  */
 class DoubleColumnType : ColumnType<Double>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = DoubleColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.doubleType()
     override fun valueFromDB(value: Any): Double = when (value) {
         is Double -> value
@@ -468,6 +508,9 @@ class DecimalColumnType(
     /** Count of decimal digits in the fractional part. */
     val scale: Int
 ) : ColumnType<BigDecimal>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = DecimalColumnType(precision, scale).also { it.nullable = nullable }
+
     override fun sqlType(): String = "DECIMAL($precision, $scale)"
 
     override fun readObject(rs: ResultSet, index: Int): Any? {
@@ -527,6 +570,9 @@ class DecimalColumnType(
  * Character column for storing single characters.
  */
 class CharacterColumnType : ColumnType<Char>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = CharacterColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = "CHAR"
     override fun valueFromDB(value: Any): Char = when (value) {
         is Char -> value
@@ -601,6 +647,9 @@ open class CharColumnType(
     val colLength: Int = 255,
     collate: String? = null
 ) : StringColumnType(collate) {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = CharColumnType(colLength, collate).also { it.nullable = nullable }
+
     override fun sqlType(): String = buildString {
         append("CHAR($colLength)")
         if (collate != null) {
@@ -645,6 +694,9 @@ open class VarCharColumnType(
     val colLength: Int = 255,
     collate: String? = null
 ) : StringColumnType(collate) {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = VarCharColumnType(colLength, collate).also { it.nullable = nullable }
+
     open fun preciseType() = currentDialect.dataTypeProvider.varcharType(colLength)
 
     override fun sqlType(): String = buildString {
@@ -688,6 +740,9 @@ open class TextColumnType(
     /** Whether content will be loaded immediately when data is retrieved from the database. */
     val eagerLoading: Boolean = false
 ) : StringColumnType(collate) {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = TextColumnType(collate, eagerLoading).also { it.nullable = nullable }
+
     /** The exact SQL type representing this character type. */
     open fun preciseType() = currentDialect.dataTypeProvider.textType()
 
@@ -728,6 +783,9 @@ open class LargeTextColumnType(
  * Binary column for storing binary strings of variable and _unlimited_ length.
  */
 open class BasicBinaryColumnType : ColumnType<ByteArray>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = BasicBinaryColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.binaryType()
 
     override fun readObject(rs: ResultSet, index: Int): Any? = rs.getBytes(index)
@@ -749,6 +807,9 @@ open class BinaryColumnType(
     /** Returns the length of the column- */
     val length: Int
 ) : BasicBinaryColumnType() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = BinaryColumnType(length).also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.binaryType(length)
 
     override fun validateValueBeforeUpdate(value: ByteArray?) {
@@ -784,6 +845,9 @@ class BlobColumnType(
     /** Returns whether an OID column should be used instead of BYTEA. This value only applies to PostgreSQL databases. */
     val useObjectIdentifier: Boolean = false
 ) : ColumnType<ExposedBlob>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = BlobColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = when {
         useObjectIdentifier && currentDialect is PostgreSQLDialect -> "oid"
         useObjectIdentifier -> error("Storing BLOBs using OID columns is only supported by PostgreSQL")
@@ -819,6 +883,9 @@ class BlobColumnType(
  * Binary column for storing [UUID].
  */
 class UUIDColumnType : ColumnType<UUID>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = UUIDColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.uuidType()
 
     override fun valueFromDB(value: Any): UUID = when {
@@ -850,6 +917,9 @@ class UUIDColumnType : ColumnType<UUID>() {
  * Boolean column for storing boolean values.
  */
 class BooleanColumnType : ColumnType<Boolean>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = BooleanColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.booleanType()
 
     override fun valueFromDB(value: Any): Boolean = when (value) {
@@ -881,6 +951,9 @@ class EnumerationColumnType<T : Enum<T>>(
     /** Returns the enum class used in this column type. */
     val klass: KClass<T>
 ) : ColumnType<T>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = EnumerationColumnType(klass).also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.integerType()
     private val enumConstants by lazy { klass.java.enumConstants!! }
 
@@ -920,6 +993,9 @@ class EnumerationNameColumnType<T : Enum<T>>(
     val klass: KClass<T>,
     val colLength: Int
 ) : ColumnType<T>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = EnumerationNameColumnType(klass, colLength).also { it.nullable = nullable }
+
     private val enumConstants by lazy { klass.java.enumConstants!!.associateBy { it.name } }
 
     override fun sqlType(): String = currentDialect.dataTypeProvider.varcharType(colLength)
@@ -992,6 +1068,9 @@ class CustomEnumerationColumnType<T : Enum<T>>(
     /** Returns the function that converts an enumeration instance [T] to a value that will be stored to a database. */
     val toDb: (T) -> Any
 ) : ColumnType<T>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = CustomEnumerationColumnType(name, sql, fromDb, toDb).also { it.nullable = nullable }
+
     override fun sqlType(): String = sql ?: error("Column $name should exist in database")
 
     @Suppress("UNCHECKED_CAST")
@@ -1027,6 +1106,9 @@ class ArrayColumnType<E>(
     /** Returns the maximum amount of allowed elements in this array column. */
     val maximumCardinality: Int? = null
 ) : ColumnType<List<E>>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = ArrayColumnType<E>(delegate.copy(), maximumCardinality).also { it.nullable = nullable }
+
     override fun sqlType(): String = buildString {
         append(delegate.sqlType())
         when {

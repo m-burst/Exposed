@@ -11,6 +11,9 @@ class EncryptedBinaryColumnType(
     private val encryptor: Encryptor,
     length: Int
 ) : BinaryColumnType(length) {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = EncryptedBinaryColumnType(encryptor, length).also { it.nullable = nullable }
+
     override fun nonNullValueToString(value: ByteArray): String {
         return super.nonNullValueToString(notNullValueToDB(value))
     }

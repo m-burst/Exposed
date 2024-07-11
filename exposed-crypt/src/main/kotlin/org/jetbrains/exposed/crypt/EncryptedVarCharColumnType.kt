@@ -12,6 +12,9 @@ class EncryptedVarCharColumnType(
     private val encryptor: Encryptor,
     colLength: Int,
 ) : VarCharColumnType(colLength) {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = EncryptedVarCharColumnType(encryptor, colLength).also { it.nullable = nullable }
+
     override fun nonNullValueToString(value: String): String {
         return super.nonNullValueToString(notNullValueToDB(value))
     }

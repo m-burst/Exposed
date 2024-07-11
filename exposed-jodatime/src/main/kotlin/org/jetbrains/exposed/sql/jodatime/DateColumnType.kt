@@ -66,6 +66,10 @@ private fun oracleDateLiteral(dateTime: DateTime) =
  */
 class DateColumnType(val time: Boolean) : ColumnType<DateTime>(), IDateColumnType {
     override val hasTimePart: Boolean = time
+
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = DateColumnType(time).also { it.nullable = nullable }
+
     override fun sqlType(): String = if (time) {
         currentDialect.dataTypeProvider.dateTimeType()
     } else {
@@ -175,6 +179,9 @@ class DateColumnType(val time: Boolean) : ColumnType<DateTime>(), IDateColumnTyp
  */
 class DateTimeWithTimeZoneColumnType : ColumnType<DateTime>(), IDateColumnType {
     override val hasTimePart: Boolean = true
+
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = DateTimeWithTimeZoneColumnType().also { it.nullable = nullable }
 
     override fun sqlType(): String = currentDialect.dataTypeProvider.timestampWithTimeZoneType()
 

@@ -140,6 +140,9 @@ private val LocalDate.millis get() = this.atStartOfDayIn(TimeZone.currentSystemD
 class KotlinLocalDateColumnType : ColumnType<LocalDate>(), IDateColumnType {
     override val hasTimePart: Boolean = false
 
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = KotlinLocalDateColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.dateType()
 
     override fun nonNullValueToString(value: LocalDate): String {
@@ -184,6 +187,9 @@ class KotlinLocalDateColumnType : ColumnType<LocalDate>(), IDateColumnType {
  */
 class KotlinLocalDateTimeColumnType : ColumnType<LocalDateTime>(), IDateColumnType {
     override val hasTimePart: Boolean = true
+
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = KotlinLocalDateTimeColumnType().also { it.nullable = nullable }
 
     override fun sqlType(): String = currentDialect.dataTypeProvider.dateTimeType()
 
@@ -260,6 +266,9 @@ class KotlinLocalDateTimeColumnType : ColumnType<LocalDateTime>(), IDateColumnTy
 class KotlinLocalTimeColumnType : ColumnType<LocalTime>(), IDateColumnType {
     override val hasTimePart: Boolean = true
 
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = KotlinLocalTimeColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.timeType()
 
     override fun nonNullValueToString(value: LocalTime): String {
@@ -314,6 +323,9 @@ class KotlinLocalTimeColumnType : ColumnType<LocalTime>(), IDateColumnType {
  */
 class KotlinInstantColumnType : ColumnType<Instant>(), IDateColumnType {
     override val hasTimePart: Boolean = true
+
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = KotlinInstantColumnType().also { it.nullable = nullable }
 
     override fun sqlType(): String = currentDialect.dataTypeProvider.dateTimeType()
 
@@ -379,6 +391,9 @@ class KotlinInstantColumnType : ColumnType<Instant>(), IDateColumnType {
 class KotlinOffsetDateTimeColumnType : ColumnType<OffsetDateTime>(), IDateColumnType {
     override val hasTimePart: Boolean = true
 
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = KotlinOffsetDateTimeColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.timestampWithTimeZoneType()
 
     override fun nonNullValueToString(value: OffsetDateTime): String = when (currentDialect) {
@@ -439,6 +454,9 @@ class KotlinOffsetDateTimeColumnType : ColumnType<OffsetDateTime>(), IDateColumn
  * @sample org.jetbrains.exposed.sql.kotlin.datetime.duration
  */
 class KotlinDurationColumnType : ColumnType<Duration>() {
+    // OPTION 4 - allow column type to be copied by value
+    override fun copy() = KotlinDurationColumnType().also { it.nullable = nullable }
+
     override fun sqlType(): String = currentDialect.dataTypeProvider.longType()
 
     override fun nonNullValueToString(value: Duration): String {

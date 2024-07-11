@@ -20,6 +20,9 @@ public final class org/jetbrains/exposed/sql/money/CompositeMoneyColumnTypeKt {
 public final class org/jetbrains/exposed/sql/money/CurrencyColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public static final field Companion Lorg/jetbrains/exposed/sql/money/CurrencyColumnType$Companion;
 	public fun <init> ()V
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/ColumnType;
+	public synthetic fun copy ()Lorg/jetbrains/exposed/sql/IColumnType;
+	public fun copy ()Lorg/jetbrains/exposed/sql/money/CurrencyColumnType;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
