@@ -247,8 +247,7 @@ open class Query(override var set: FieldSet, where: Op<Boolean>?) : AbstractQuer
                     append(" GROUP BY ")
                     groupedByColumns.appendTo {
                         +(
-                            (it as? ExpressionWithColumnTypeAlias)?.aliasOnlyExpressionWithColumnType()
-                                ?: (it as? ExpressionAlias)?.aliasOnlyExpression()
+                            (it as? IExpressionAlias<*>)?.aliasOnlyExpression()
                                 ?: it
                             )
                     }

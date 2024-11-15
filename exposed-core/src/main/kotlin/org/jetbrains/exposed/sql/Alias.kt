@@ -107,9 +107,11 @@ class Alias<out T : Table>(val delegate: T, val alias: String) : Table() {
         .orEmpty()
 }
 
-/** Represents a temporary SQL identifier, [alias], for a [delegate] expression. */
-class ExpressionAlias<T>(val delegate: Expression<T>, val alias: String) : Expression<T>() {
-    override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
+interface IExpressionAlias<T> {
+    val delegate: Expression<T>
+    val alias: String
+
+    fun internalToQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         if (delegate is ComparisonOp && (currentDialectIfAvailable is SQLServerDialect || currentDialectIfAvailable is OracleDialect)) {
             +"(CASE WHEN "
             append(delegate)
@@ -122,40 +124,31 @@ class ExpressionAlias<T>(val delegate: Expression<T>, val alias: String) : Expre
 
     /** Returns an [Expression] containing only the string representation of this [alias]. */
     fun aliasOnlyExpression(): Expression<T> {
-        return if (delegate is ExpressionWithColumnType<T>) {
-            object : Function<T>(delegate.columnType) {
+        return (delegate as? ExpressionWithColumnType<T>)?.columnType?.let { columnType ->
+            object : ExpressionWithColumnType<T>() {
+                override val columnType: IColumnType<T & Any>
+                    get() = columnType
+
                 override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder { append(alias) }
             }
-        } else {
-            object : Expression<T>() {
-                override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder { append(alias) }
-            }
+        } ?: object : Expression<T>() {
+            override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder { append(alias) }
         }
     }
 }
 
+/** Represents a temporary SQL identifier, [alias], for a [delegate] expression. */
+class ExpressionAlias<T>(override val delegate: Expression<T>, override val alias: String) : IExpressionAlias<T>, Expression<T>() {
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) = internalToQueryBuilder(queryBuilder)
+}
+
 /** Represents a temporary SQL identifier, [alias], for a [delegate] expression with column type. */
-class ExpressionWithColumnTypeAlias<T>(val delegate: ExpressionWithColumnType<T>, val alias: String) : ExpressionWithColumnType<T>() {
+class ExpressionWithColumnTypeAlias<T>(override val delegate: ExpressionWithColumnType<T>, override val alias: String) : IExpressionAlias<T>,
+    ExpressionWithColumnType<T>() {
     override val columnType: IColumnType<T & Any>
         get() = delegate.columnType
 
-    override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        if (delegate is ComparisonOp && (currentDialectIfAvailable is SQLServerDialect || currentDialectIfAvailable is OracleDialect)) {
-            +"(CASE WHEN "
-            append(delegate)
-            +" THEN 1 ELSE 0 END)"
-        } else {
-            append(delegate)
-        }
-        append(" $alias")
-    }
-
-    /** Returns an [ExpressionWithColumnType] containing only the string representation of this [alias]. */
-    fun aliasOnlyExpressionWithColumnType(): ExpressionWithColumnType<T> {
-        return object : Function<T>(delegate.columnType) {
-            override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder { append(alias) }
-        }
-    }
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) = internalToQueryBuilder(queryBuilder)
 }
 
 /** Represents a temporary SQL identifier, [alias], for a [query]. */
@@ -168,8 +161,7 @@ class QueryAlias(val query: AbstractQuery<*>, val alias: String) : ColumnSet() {
 
     override val fields: List<Expression<*>> = query.set.fields.map { expression ->
         (expression as? Column<*>)?.clone()
-            ?: (expression as? ExpressionWithColumnTypeAlias<*>)?.aliasOnlyExpressionWithColumnType()
-            ?: (expression as? ExpressionAlias<*>)?.aliasOnlyExpression()
+            ?: (expression as? IExpressionAlias<*>)?.aliasOnlyExpression()
             ?: expression
     }
 
@@ -177,8 +169,7 @@ class QueryAlias(val query: AbstractQuery<*>, val alias: String) : ColumnSet() {
         get() = query.set.fields.map { expression ->
             when (expression) {
                 is Column<*> -> expression.clone()
-                is ExpressionWithColumnTypeAlias<*> -> expression.delegate.alias("$alias.${expression.alias}").aliasOnlyExpressionWithColumnType()
-                is ExpressionAlias<*> -> expression.delegate.alias("$alias.${expression.alias}").aliasOnlyExpression()
+                is IExpressionAlias<*> -> expression.delegate.alias("$alias.${expression.alias}").aliasOnlyExpression()
                 else -> expression
             }
         }
@@ -190,21 +181,17 @@ class QueryAlias(val query: AbstractQuery<*>, val alias: String) : ColumnSet() {
         query.set.source.columns.find { it == original }?.clone() as? Column<T>
             ?: error("Column not found in original table")
 
-    operator fun <T : Any?> get(original: Expression<T>): Expression<T> {
-        val aliases = query.set.fields.filterIsInstance<ExpressionAlias<T>>()
+    private fun <T : Any?> resolveAlias(aliases: List<IExpressionAlias<T>>, original: Expression<T>): Expression<T> {
         return aliases.find { it == original }?.let {
             it.delegate.alias("$alias.${it.alias}").aliasOnlyExpression()
         } ?: aliases.find { it.delegate == original }?.aliasOnlyExpression()
-            ?: error("Field not found in original table fields")
+        ?: error("Field not found in original table fields")
     }
 
-    operator fun <T : Any?> get(original: ExpressionWithColumnType<T>): ExpressionWithColumnType<T> {
-        val aliases = query.set.fields.filterIsInstance<ExpressionWithColumnTypeAlias<T>>()
-        return aliases.find { it == original }?.let {
-            it.delegate.alias("$alias.${it.alias}").aliasOnlyExpressionWithColumnType()
-        } ?: aliases.find { it.delegate == original }?.aliasOnlyExpressionWithColumnType()
-            ?: error("Field not found in original table fields")
-    }
+    operator fun <T : Any?> get(original: Expression<T>): Expression<T> = resolveAlias(query.set.fields.filterIsInstance<ExpressionAlias<T>>(), original)
+
+    operator fun <T : Any?> get(original: ExpressionWithColumnType<T>): ExpressionWithColumnType<T> =
+        resolveAlias(query.set.fields.filterIsInstance<ExpressionWithColumnTypeAlias<T>>(), original) as ExpressionWithColumnType<T>
 
     override fun join(
         otherTable: ColumnSet,
