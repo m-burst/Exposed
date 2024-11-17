@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
 import java.sql.ResultSet
 import java.sql.SQLException
-import java.util.Stack
+import java.util.*
 
 internal object DefaultValueMarker {
     override fun toString(): String = "DEFAULT"
@@ -50,14 +50,9 @@ abstract class Statement<out T>(val type: StatementType, val targets: List<Table
 
     /**
      * Executes the SQL statement directly in the provided [transaction] and returns the generated result,
-     * or `null` if either no result was retrieved or if the transaction blocked statement execution.
+     * or `null` if no result was retrieved.
      */
-    fun execute(transaction: Transaction): T? = if (transaction.blockStatementExecution) {
-        transaction.explainStatement = this
-        null
-    } else {
-        transaction.exec(this)
-    }
+    fun execute(transaction: Transaction): T? = transaction.exec(this)
 
     internal fun executeIn(transaction: Transaction): Pair<T?, List<StatementContext>> {
         val arguments = arguments()

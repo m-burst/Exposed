@@ -15,7 +15,6 @@ import java.sql.ResultSet
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
-import kotlin.collections.HashMap
 
 /** Represents a key for a value of type [T]. */
 class Key<T>
@@ -122,12 +121,6 @@ open class Transaction(
 
     /** The currently executing statement. */
     var currentStatement: PreparedStatementApi? = null
-
-    /** The current statement for which an execution plan should be queried, but which should never itself be executed. */
-    internal var explainStatement: Statement<*>? = null
-
-    /** Whether this [Transaction] should prevent any statement execution from proceeding. */
-    internal var blockStatementExecution: Boolean = false
 
     internal val executedStatements: MutableList<PreparedStatementApi> = arrayListOf()
     internal var openResultSetsCount: Int = 0

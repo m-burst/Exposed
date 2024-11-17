@@ -1,6 +1,8 @@
 package org.jetbrains.exposed.sql
 
+import org.jetbrains.exposed.sql.statements.IStatementBuilder
 import org.jetbrains.exposed.sql.statements.Statement
+import org.jetbrains.exposed.sql.statements.StatementBuilder
 import org.jetbrains.exposed.sql.statements.StatementType
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
 import org.jetbrains.exposed.sql.transactions.TransactionManager
@@ -104,17 +106,7 @@ class ExplainResultRow(
 fun Transaction.explain(
     analyze: Boolean = false,
     options: String? = null,
-    body: Transaction.() -> Any?
+    body: IStatementBuilder.() -> Statement<*>
 ): ExplainQuery {
-    val query = try {
-        blockStatementExecution = true
-        val internalStatement = body() as? Statement<*> ?: explainStatement
-        checkNotNull(internalStatement) { "A valid query or statement must be provided to the EXPLAIN body." }
-        ExplainQuery(analyze, options, internalStatement)
-    } finally {
-        explainStatement = null
-        blockStatementExecution = false
-    }
-
-    return query
+    return ExplainQuery(analyze, options, StatementBuilder.body())
 }
