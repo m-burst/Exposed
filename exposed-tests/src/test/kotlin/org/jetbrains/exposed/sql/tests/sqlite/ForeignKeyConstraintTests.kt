@@ -186,22 +186,16 @@ class ForeignKeyConstraintTests : DatabaseTestsBase() {
             override val primaryKey = PrimaryKey(id)
         }
 
-        withTables(category, item) { testDb ->
+        withTables(category, item) {
             if (currentDialectTest.supportsOnUpdate) {
+                // previously, this was not testing the MysqlDialect.fillConstraintCacheForTables() override
                 val constraints = connection.metadata {
                     tableConstraints(listOf(item))
                 }
                 constraints.values.forEach { list ->
                     list.forEach {
-                        // According to the documentation: "NO ACTION: A keyword from standard SQL. For InnoDB, this is equivalent to RESTRICT;"
-                        // https://dev.mysql.com/doc/refman/8.0/en/create-table-foreign-keys.html
-                        if (testDb == TestDB.MYSQL_V5) {
-                            assertEquals(ReferenceOption.NO_ACTION, it.updateRule)
-                            assertEquals(ReferenceOption.NO_ACTION, it.deleteRule)
-                        } else {
-                            assertEquals(currentDialectTest.defaultReferenceOption, it.updateRule)
-                            assertEquals(currentDialectTest.defaultReferenceOption, it.deleteRule)
-                        }
+                        assertEquals(currentDialectTest.defaultReferenceOption, it.updateRule)
+                        assertEquals(currentDialectTest.defaultReferenceOption, it.deleteRule)
                     }
                 }
             }

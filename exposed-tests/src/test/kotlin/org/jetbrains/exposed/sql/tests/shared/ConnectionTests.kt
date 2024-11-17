@@ -49,11 +49,13 @@ class ConnectionTests : DatabaseTestsBase() {
         val child = object : LongIdTable("child") {
             val scale = reference("scale", parent.scale)
         }
-        withTables(listOf(TestDB.MYSQL_V5), child, parent) {
+        withTables(child, parent) { testDb ->
+            // previously, this was not testing the MysqlDialect.fillConstraintCacheForTables() override
+            // which would return 1 (whenever columnConstraints is called)
             val constraints = connection.metadata {
                 tableConstraints(listOf(child))
             }
-            assertEquals(2, constraints.keys.size)
+            assertEquals(if (testDb in TestDB.ALL_MYSQL_MARIADB) 1 else 2, constraints.keys.size)
         }
     }
 }

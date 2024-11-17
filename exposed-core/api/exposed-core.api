@@ -3527,16 +3527,25 @@ public abstract interface class org/jetbrains/exposed/sql/statements/api/Exposed
 
 public abstract class org/jetbrains/exposed/sql/statements/api/ExposedDatabaseMetadata {
 	public fun <init> (Ljava/lang/String;)V
+	protected final fun catalogAndSchemaArgs (Ljava/lang/String;Lorg/jetbrains/exposed/sql/vendors/DatabaseDialect;)Lkotlin/Pair;
+	protected abstract fun catalogs ()Ljava/util/List;
 	public abstract fun cleanCache ()V
-	public abstract fun columns ([Lorg/jetbrains/exposed/sql/Table;)Ljava/util/Map;
+	public fun columns ([Lorg/jetbrains/exposed/sql/Table;)Ljava/util/Map;
+	protected abstract fun columnsMetadata (Ljava/lang/String;Ljava/lang/String;Lorg/jetbrains/exposed/sql/Table;)Ljava/util/List;
 	public abstract fun existingIndices ([Lorg/jetbrains/exposed/sql/Table;)Ljava/util/Map;
 	public abstract fun existingPrimaryKeys ([Lorg/jetbrains/exposed/sql/Table;)Ljava/util/Map;
+	protected final fun filterKeysAndParse (Ljava/util/HashMap;Lorg/jetbrains/exposed/sql/Table;Ljava/util/List;)Ljava/util/List;
+	protected abstract fun getCatalog ()Ljava/lang/String;
+	protected final fun getCurrentSchema ()Ljava/lang/String;
 	public final fun getDatabase ()Ljava/lang/String;
+	public abstract fun getDatabaseDialectMode ()Ljava/lang/String;
 	public abstract fun getDatabaseDialectName ()Ljava/lang/String;
+	protected final fun getDatabaseName ()Ljava/lang/String;
 	public abstract fun getDatabaseProductVersion ()Ljava/lang/String;
 	public abstract fun getDefaultIsolationLevel ()I
 	public abstract fun getIdentifierManager ()Lorg/jetbrains/exposed/sql/statements/api/IdentifierManagerApi;
-	public abstract fun getSchemaNames ()Ljava/util/List;
+	protected abstract fun getSchema ()Ljava/lang/String;
+	public fun getSchemaNames ()Ljava/util/List;
 	public abstract fun getSupportsAlterTableWithAddColumn ()Z
 	public abstract fun getSupportsAlterTableWithDropColumn ()Z
 	public abstract fun getSupportsMultipleResultSets ()Z
@@ -3544,10 +3553,50 @@ public abstract class org/jetbrains/exposed/sql/statements/api/ExposedDatabaseMe
 	public abstract fun getTableNames ()Ljava/util/Map;
 	public abstract fun getUrl ()Ljava/lang/String;
 	public abstract fun getVersion ()Ljava/math/BigDecimal;
+	protected abstract fun indicesMetadata (Ljava/lang/String;Ljava/lang/String;Lorg/jetbrains/exposed/sql/Table;)Ljava/util/HashMap;
+	protected final fun parseColumnMetadata (Ljava/sql/ResultSet;)Lorg/jetbrains/exposed/sql/vendors/ColumnMetadata;
+	protected final fun parseTableName (Ljava/sql/ResultSet;Lorg/jetbrains/exposed/sql/vendors/DatabaseDialect;)Ljava/lang/String;
+	protected abstract fun primaryKeyColumns (Ljava/lang/String;Ljava/lang/String;Lorg/jetbrains/exposed/sql/Table;)Ljava/util/List;
+	protected final fun quoteSequenceNameIfNecessary (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun resetCurrentScheme ()V
+	public abstract fun resolveReferenceOption (Ljava/lang/String;)Lorg/jetbrains/exposed/sql/ReferenceOption;
+	protected abstract fun schemas ()Ljava/util/List;
 	public abstract fun sequences ()Ljava/util/List;
+	protected final fun setCurrentSchema (Ljava/lang/String;)V
+	protected final fun tableCatalogAndSchema (Ljava/lang/String;Lorg/jetbrains/exposed/sql/Table;)Lkotlin/Pair;
 	public abstract fun tableConstraints (Ljava/util/List;)Ljava/util/Map;
-	public abstract fun tableNamesByCurrentSchema (Ljava/util/Map;)Lorg/jetbrains/exposed/sql/vendors/SchemaMetadata;
+	public fun tableNamesByCurrentSchema (Ljava/util/Map;)Lorg/jetbrains/exposed/sql/vendors/SchemaMetadata;
+}
+
+protected final class org/jetbrains/exposed/sql/statements/api/ExposedDatabaseMetadata$CachableMapWithDefault : java/util/Map, kotlin/jvm/internal/markers/KMappedMarker {
+	public fun <init> (Lorg/jetbrains/exposed/sql/statements/api/ExposedDatabaseMetadata;Ljava/util/Map;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lorg/jetbrains/exposed/sql/statements/api/ExposedDatabaseMetadata;Ljava/util/Map;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun clear ()V
+	public fun compute (Ljava/lang/Object;Ljava/util/function/BiFunction;)Ljava/lang/Object;
+	public fun computeIfAbsent (Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;
+	public fun computeIfPresent (Ljava/lang/Object;Ljava/util/function/BiFunction;)Ljava/lang/Object;
+	public fun containsKey (Ljava/lang/Object;)Z
+	public fun containsValue (Ljava/lang/Object;)Z
+	public final fun entrySet ()Ljava/util/Set;
+	public fun get (Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun getDefault ()Lkotlin/jvm/functions/Function1;
+	public fun getEntries ()Ljava/util/Set;
+	public fun getKeys ()Ljava/util/Set;
+	public fun getSize ()I
+	public fun getValues ()Ljava/util/Collection;
+	public fun isEmpty ()Z
+	public final fun keySet ()Ljava/util/Set;
+	public fun merge (Ljava/lang/Object;Ljava/lang/Object;Ljava/util/function/BiFunction;)Ljava/lang/Object;
+	public fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun putAll (Ljava/util/Map;)V
+	public fun putIfAbsent (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun remove (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun remove (Ljava/lang/Object;Ljava/lang/Object;)Z
+	public fun replace (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun replace (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z
+	public fun replaceAll (Ljava/util/function/BiFunction;)V
+	public final fun size ()I
+	public final fun values ()Ljava/util/Collection;
 }
 
 public abstract class org/jetbrains/exposed/sql/statements/api/ExposedSavepoint {
@@ -3568,6 +3617,7 @@ public abstract class org/jetbrains/exposed/sql/statements/api/IdentifierManager
 	protected abstract fun getSupportsMixedIdentifiers ()Z
 	protected abstract fun getSupportsMixedQuotedIdentifiers ()Z
 	public final fun inProperCase (Ljava/lang/String;)Ljava/lang/String;
+	public final fun isDotPrefixedAndUnquoted (Ljava/lang/String;)Z
 	protected abstract fun isLowerCaseIdentifiers ()Z
 	protected abstract fun isLowerCaseQuotedIdentifiers ()Z
 	protected abstract fun isUpperCaseIdentifiers ()Z
@@ -4078,8 +4128,6 @@ public class org/jetbrains/exposed/sql/vendors/H2Dialect : org/jetbrains/exposed
 	public final fun isSecondVersion ()Z
 	public fun listDatabases ()Ljava/lang/String;
 	public fun modifyColumn (Lorg/jetbrains/exposed/sql/Column;Lorg/jetbrains/exposed/sql/ColumnDiff;)Ljava/util/List;
-	public fun resolveRefOptionFromJdbc (I)Lorg/jetbrains/exposed/sql/ReferenceOption;
-	public fun sequences ()Ljava/util/List;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -4134,7 +4182,6 @@ public class org/jetbrains/exposed/sql/vendors/MysqlDialect : org/jetbrains/expo
 	public fun createSchema (Lorg/jetbrains/exposed/sql/Schema;)Ljava/lang/String;
 	public fun dropIndex (Ljava/lang/String;Ljava/lang/String;ZZ)Ljava/lang/String;
 	public fun dropSchema (Lorg/jetbrains/exposed/sql/Schema;Z)Ljava/lang/String;
-	protected fun fillConstraintCacheForTables (Ljava/util/List;)V
 	public fun getSupportsCreateSequence ()Z
 	public fun getSupportsOrderByNullsFirstLast ()Z
 	public fun getSupportsSetDefaultReferenceOption ()Z
@@ -4172,8 +4219,6 @@ public class org/jetbrains/exposed/sql/vendors/OracleDialect : org/jetbrains/exp
 	public fun isAllowedAsColumnDefault (Lorg/jetbrains/exposed/sql/Expression;)Z
 	public fun listDatabases ()Ljava/lang/String;
 	public fun modifyColumn (Lorg/jetbrains/exposed/sql/Column;Lorg/jetbrains/exposed/sql/ColumnDiff;)Ljava/util/List;
-	public fun resolveRefOptionFromJdbc (I)Lorg/jetbrains/exposed/sql/ReferenceOption;
-	public fun sequences ()Ljava/util/List;
 	public fun setSchema (Lorg/jetbrains/exposed/sql/Schema;)Ljava/lang/String;
 }
 
@@ -4245,7 +4290,6 @@ public class org/jetbrains/exposed/sql/vendors/SQLServerDialect : org/jetbrains/
 	public fun isAllowedAsColumnDefault (Lorg/jetbrains/exposed/sql/Expression;)Z
 	public fun listDatabases ()Ljava/lang/String;
 	public fun modifyColumn (Lorg/jetbrains/exposed/sql/Column;Lorg/jetbrains/exposed/sql/ColumnDiff;)Ljava/util/List;
-	public fun sequences ()Ljava/util/List;
 	public fun setSchema (Lorg/jetbrains/exposed/sql/Schema;)Ljava/lang/String;
 }
 
