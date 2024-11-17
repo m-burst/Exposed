@@ -3,6 +3,7 @@ package org.jetbrains.exposed.dao
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.statements.api.TableUtils
 import org.jetbrains.exposed.sql.transactions.transactionScope
 import java.util.*
 
@@ -186,10 +187,12 @@ class EntityCache(private val transaction: Transaction) {
             flushingEntities = true
             val insertedTables = inserts.keys
 
-            val updateBeforeInsert = SchemaUtils.sortTablesByReferences(insertedTables).filterIsInstance<IdTable<*>>()
+            @OptIn(InternalApi::class)
+            val updateBeforeInsert = TableUtils.sortTablesByReferences(insertedTables).filterIsInstance<IdTable<*>>()
             updateBeforeInsert.forEach(::updateEntities)
 
-            SchemaUtils.sortTablesByReferences(tables).filterIsInstance<IdTable<*>>().forEach(::flushInserts)
+            @OptIn(InternalApi::class)
+            TableUtils.sortTablesByReferences(tables).filterIsInstance<IdTable<*>>().forEach(::flushInserts)
 
             val updateTheRestTables = tables - updateBeforeInsert
             for (t in updateTheRestTables) {

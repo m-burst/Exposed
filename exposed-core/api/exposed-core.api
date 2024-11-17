@@ -2122,7 +2122,7 @@ public final class org/jetbrains/exposed/sql/Schema {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class org/jetbrains/exposed/sql/SchemaUtils {
+public final class org/jetbrains/exposed/sql/SchemaUtils : org/jetbrains/exposed/sql/statements/api/SchemaUtilityApi {
 	public static final field INSTANCE Lorg/jetbrains/exposed/sql/SchemaUtils;
 	public final fun addMissingColumnsStatements ([Lorg/jetbrains/exposed/sql/Table;Z)Ljava/util/List;
 	public static synthetic fun addMissingColumnsStatements$default (Lorg/jetbrains/exposed/sql/SchemaUtils;[Lorg/jetbrains/exposed/sql/Table;ZILjava/lang/Object;)Ljava/util/List;
@@ -3732,6 +3732,35 @@ public abstract interface class org/jetbrains/exposed/sql/statements/api/Prepare
 
 public final class org/jetbrains/exposed/sql/statements/api/PreparedStatementApi$DefaultImpls {
 	public static fun fillParameters (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;Ljava/lang/Iterable;)I
+}
+
+public abstract class org/jetbrains/exposed/sql/statements/api/SchemaUtilityApi {
+	public fun <init> ()V
+	protected final fun createDdl (Lorg/jetbrains/exposed/sql/ForeignKeyConstraint;)Ljava/util/List;
+	protected final fun filterAndLogExcessConstraints (Ljava/util/Map;Z)Ljava/util/List;
+	protected final fun filterAndLogExcessIndices (Ljava/util/Map;Z)Ljava/util/List;
+	protected final fun filterAndLogMissingAndUnmappedIndices (Ljava/util/Map;Ljava/util/Set;ZZ[Lorg/jetbrains/exposed/sql/Table;)Lkotlin/Pair;
+	protected final fun getAlterTablesLogMessage ()Ljava/lang/String;
+	protected final fun getColumnsLogMessage ()Ljava/lang/String;
+	protected final fun getConstraintsLogMessage ()Ljava/lang/String;
+	protected final fun getCreateSequencesLogMessage ()Ljava/lang/String;
+	protected final fun getCreateTablesLogMessage ()Ljava/lang/String;
+	protected final fun getExecuteAlterTablesLogMessage ()Ljava/lang/String;
+	protected final fun getExecuteCreateTablesLogMessage ()Ljava/lang/String;
+	protected final fun getMappingConsistenceLogMessage ()Ljava/lang/String;
+	protected final fun getPrimaryKeysLogMessage ()Ljava/lang/String;
+	protected final fun hasCycle (Ljava/util/List;)Z
+	protected final fun log (Ljava/util/Collection;Ljava/lang/String;Z)V
+	protected final fun logTimeSpent (Ljava/lang/String;ZLkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	protected final fun mapMissingColumnStatementsTo (Lorg/jetbrains/exposed/sql/Table;Ljava/util/Collection;Ljava/util/List;Lorg/jetbrains/exposed/sql/vendors/PrimaryKeyMetadata;Z)Ljava/util/Collection;
+	protected final fun mapMissingConstraintsTo (Ljava/util/Collection;Ljava/util/Map;[Lorg/jetbrains/exposed/sql/Table;)Ljava/util/Collection;
+	protected final fun sortByReferences (Ljava/lang/Iterable;)Ljava/util/List;
+	protected final fun tableDdlWithoutExistingSequence (Lorg/jetbrains/exposed/sql/Table;Lorg/jetbrains/exposed/sql/Sequence;)Lkotlin/Pair;
+}
+
+public final class org/jetbrains/exposed/sql/statements/api/TableUtils : org/jetbrains/exposed/sql/statements/api/SchemaUtilityApi {
+	public static final field INSTANCE Lorg/jetbrains/exposed/sql/statements/api/TableUtils;
+	public final fun sortTablesByReferences (Ljava/lang/Iterable;)Ljava/util/List;
 }
 
 public final class org/jetbrains/exposed/sql/transactions/ThreadLocalTransactionManager : org/jetbrains/exposed/sql/transactions/TransactionManager {
