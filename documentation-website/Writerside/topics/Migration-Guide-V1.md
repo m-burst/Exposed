@@ -16,6 +16,7 @@ val sql: String = sqlString {
 }
 ```
 * The introduction of `IStatementBuilder` also essentially reverts the entire [inline DSL PR](https://github.com/JetBrains/Exposed/pull/2272).
+* Many classes with methods that execute are now temporarily suspended. This might be problematic for any custom user implementations.
 
 **API Major changes:**
 * Interface `DatabaseDialect`:
@@ -42,4 +43,7 @@ val sql: String = sqlString {
 * Functions `replace(query)`, `insert(query)`, `insertIgnore(query)`:
     * Parameter `columns` has a different type: `List<Column<*>>?` with a default `null` argument instead of a filtered list.
       This allows `IStatementBuilder` to be used and common logic to be moved into the interface as private.
-* DSL functions are no longer inline, so that a common `StatementBuilder` could be used.  
+* DSL functions are no longer inline, so that a common `StatementBuilder` could be used.
+* Function `PreparedStatementApi.executeInternal` (in `Statement`) now suspends
+    * Other examples: `PreparedStatementApi.execInsertFunction()` in `InsertStatement`; `ConnectionApi.executeInBatch()`;
+      Multiple in `PreparedStatementApi`;

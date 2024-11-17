@@ -7,6 +7,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.statements.api.DatabaseApi
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
@@ -57,8 +58,8 @@ open class Entity<ID : Any>(val id: EntityID<ID>) {
     var klass: EntityClass<ID, Entity<ID>> by Delegates.notNull()
         internal set
 
-    /** The [Database] associated with the record mapped to this [Entity] instance. */
-    var db: Database by Delegates.notNull()
+    /** The database associated with the record mapped to this [Entity] instance. */
+    var db: DatabaseApi by Delegates.notNull()
         internal set
 
     /** The initial column-value mapping for this [Entity] instance before being flushed and inserted into the database. */

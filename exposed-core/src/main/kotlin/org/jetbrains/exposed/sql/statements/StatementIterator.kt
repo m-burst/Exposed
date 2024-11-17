@@ -1,10 +1,10 @@
 package org.jetbrains.exposed.sql.statements
 
+import org.jetbrains.exposed.sql.statements.api.ResultApi
 import org.jetbrains.exposed.sql.transactions.TransactionManager
-import java.sql.ResultSet
 
 internal abstract class StatementIterator<T, RR>(
-    protected val result: ResultSet
+    protected val result: ResultApi
 ) : Iterator<RR> {
     protected abstract val fieldIndex: Map<T, Int>
 
@@ -14,9 +14,7 @@ internal abstract class StatementIterator<T, RR>(
         set(value) {
             field = value
             if (!field) {
-                val statement = result.statement
-                result.close()
-                statement?.close()
+                result.releaseResult()
                 TransactionManager.current().openResultSetsCount--
             }
         }

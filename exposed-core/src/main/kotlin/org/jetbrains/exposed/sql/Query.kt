@@ -5,9 +5,9 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.greater
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.statements.Statement
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
+import org.jetbrains.exposed.sql.statements.api.ResultApi
 import org.jetbrains.exposed.sql.vendors.ForUpdateOption
 import org.jetbrains.exposed.sql.vendors.currentDialect
-import java.sql.ResultSet
 
 enum class SortOrder(val code: String) {
     ASC(code = "ASC"),
@@ -51,7 +51,7 @@ open class Query(override var set: FieldSet, where: Op<Boolean>?) : AbstractQuer
     var comments: Map<CommentPosition, String> = mutableMapOf()
         private set
 
-    override val queryToExecute: Statement<ResultSet>
+    override val queryToExecute: Statement<ResultApi>
         get() {
             val distinctExpressions = set.fields.distinct()
             return if (distinctExpressions.size < set.fields.size) {
@@ -197,7 +197,7 @@ open class Query(override var set: FieldSet, where: Op<Boolean>?) : AbstractQuer
      */
     fun isForUpdate() = (forUpdate?.let { it != ForUpdateOption.NoForUpdateOption } ?: false) && currentDialect.supportsSelectForUpdate()
 
-    override fun PreparedStatementApi.executeInternal(transaction: Transaction): ResultSet? {
+    override suspend fun PreparedStatementApi.executeInternal(transaction: Transaction): ResultApi? {
         val fetchSize = this@Query.fetchSize ?: transaction.db.defaultFetchSize
         if (fetchSize != null) {
             this.fetchSize = fetchSize
@@ -346,6 +346,7 @@ open class Query(override var set: FieldSet, where: Op<Boolean>?) : AbstractQuer
         return this
     }
 
+    // THIS will most likely need to be SUSPEND
     /**
      * Iterates over multiple executions of this `SELECT` query with its `LIMIT` clause set to [batchSize]
      * until the amount of results retrieved from the database is less than [batchSize].
@@ -428,6 +429,7 @@ open class Query(override var set: FieldSet, where: Op<Boolean>?) : AbstractQuer
         }
     }
 
+    // THIS will most likely need to be SUSPEND
     /**
      * Returns the number of results retrieved after query execution.
      *
@@ -458,7 +460,9 @@ open class Query(override var set: FieldSet, where: Op<Boolean>?) : AbstractQuer
                 count = true
                 transaction.exec(this) { rs ->
                     rs.next()
-                    rs.getLong(1).also { rs.close() }
+                    (rs.getObject(1) as? Number)?.toLong().also {
+                        rs.close()
+                    }
                 }!!
             } finally {
                 count = false
@@ -466,6 +470,7 @@ open class Query(override var set: FieldSet, where: Op<Boolean>?) : AbstractQuer
         }
     }
 
+    // THIS will most likely need to be SUSPEND
     /**
      * Returns whether any results were retrieved by query execution.
      *

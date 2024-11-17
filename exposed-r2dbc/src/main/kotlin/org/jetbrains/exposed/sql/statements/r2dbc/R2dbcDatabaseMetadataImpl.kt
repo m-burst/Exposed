@@ -10,6 +10,7 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.api.ExposedDatabaseMetadata
 import org.jetbrains.exposed.sql.statements.api.IdentifierManagerApi
+import org.jetbrains.exposed.sql.statements.api.TableUtils
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.vendors.*
 import org.jetbrains.exposed.sql.vendors.H2Dialect.H2MajorVersion
@@ -44,7 +45,7 @@ class R2dbcDatabaseMetadataImpl(
                 if (connectionData.databaseProductName.startsWith("Microsoft SQL Server ")) {
                     SQLServerDialect.dialectName
                 } else {
-                    Database.getDialectName(url)
+                    R2dbcDatabase.getR2dbcDialectName(url)
                         ?: error("Unsupported driver ${connectionData.databaseProductName} detected")
                 }
             }
@@ -242,7 +243,8 @@ class R2dbcDatabaseMetadataImpl(
     }
 
     override fun tableConstraints(tables: List<Table>): Map<String, List<ForeignKeyConstraint>> {
-        val allTables = SchemaUtils.sortTablesByReferences(tables).associateBy { it.nameInDatabaseCaseUnquoted() }
+        @OptIn(InternalApi::class)
+        val allTables = TableUtils.sortTablesByReferences(tables).associateBy { it.nameInDatabaseCaseUnquoted() }
         val allTableNames = allTables.keys
         val isMysqlDialect = currentDialect is MysqlDialect
         return if (isMysqlDialect) {

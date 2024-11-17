@@ -1,7 +1,8 @@
 package org.jetbrains.exposed.sql.transactions
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.InternalApi
 import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.statements.api.DatabaseApi
 import org.jetbrains.exposed.sql.statements.api.ExposedConnection
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedDeque
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference
 /** Represents a unit block of work that is performed on a database. */
 interface TransactionInterface {
     /** The database on which the transaction tasks are performed. */
-    val db: Database
+    val db: DatabaseApi
 
     /** The database connection used by the transaction. */
     val connection: ExposedConnection<*>
@@ -124,27 +125,33 @@ interface TransactionManager {
     fun bindTransactionToThread(transaction: Transaction?)
 
     companion object {
-        internal val currentDefaultDatabase = AtomicReference<Database>()
+        @InternalApi
+        val currentDefaultDatabase = AtomicReference<DatabaseApi>()
 
         /**
          * The database to use by default in all transactions.
          *
-         * **Note** If this value is not set, the last [Database] instance created will be used.
+         * **Note** If this value is not set, the last database instance created will be used.
          */
         @Suppress("SpacingBetweenDeclarationsWithAnnotations")
-        var defaultDatabase: Database?
-            @Synchronized get() = currentDefaultDatabase.get() ?: databases.firstOrNull()
-            @Synchronized set(value) {
+        var defaultDatabase: DatabaseApi?
+            @OptIn(InternalApi::class)
+            @Synchronized
+            get() = currentDefaultDatabase.get() ?: databases.firstOrNull()
+
+            @OptIn(InternalApi::class)
+            @Synchronized
+            set(value) {
                 currentDefaultDatabase.set(value)
             }
 
-        private val databases = ConcurrentLinkedDeque<Database>()
+        private val databases = ConcurrentLinkedDeque<DatabaseApi>()
 
-        private val registeredDatabases = ConcurrentHashMap<Database, TransactionManager>()
+        private val registeredDatabases = ConcurrentHashMap<DatabaseApi, TransactionManager>()
 
         /** Associates the provided [database] with a specific [manager]. */
         @Synchronized
-        fun registerManager(database: Database, manager: TransactionManager) {
+        fun registerManager(database: DatabaseApi, manager: TransactionManager) {
             if (defaultDatabase == null) {
                 currentThreadManager.remove()
             }
@@ -160,8 +167,9 @@ interface TransactionManager {
          * and ensures that the [database] instance will not be available for use in future transactions.
          */
         @Synchronized
-        fun closeAndUnregister(database: Database) {
+        fun closeAndUnregister(database: DatabaseApi) {
             val manager = registeredDatabases[database]
+            @OptIn(InternalApi::class)
             manager?.let {
                 registeredDatabases.remove(database)
                 databases.remove(database)
@@ -179,7 +187,7 @@ interface TransactionManager {
          * **Note** If the provided [database] is `null`, this will return the current thread's [TransactionManager]
          * instance, which may not be initialized if `Database.connect()` was not called at some point previously.
          */
-        fun managerFor(database: Database?) = if (database != null) registeredDatabases[database] else manager
+        fun managerFor(database: DatabaseApi?) = if (database != null) registeredDatabases[database] else manager
 
         private class TransactionManagerThreadLocal : ThreadLocal<TransactionManager>() {
             var isInitialized = false
@@ -233,30 +241,12 @@ interface TransactionManager {
     }
 }
 
-@Suppress("TooGenericExceptionCaught")
-internal fun TransactionInterface.rollbackLoggingException(log: (Exception) -> Unit) {
-    try {
-        rollback()
-    } catch (e: Exception) {
-        log(e)
-    }
-}
-
-@Suppress("TooGenericExceptionCaught")
-internal inline fun TransactionInterface.closeLoggingException(log: (Exception) -> Unit) {
-    try {
-        close()
-    } catch (e: Exception) {
-        log(e)
-    }
-}
-
 /**
  * The [TransactionManager] instance that is associated with this [Database].
  *
  * @throws [RuntimeException] If a manager has not been registered for the database.
  */
 @Suppress("TooGenericExceptionThrown")
-val Database?.transactionManager: TransactionManager
+val DatabaseApi?.transactionManager: TransactionManager
     get() = TransactionManager.managerFor(this)
         ?: throw RuntimeException("Database $this does not have any transaction manager")

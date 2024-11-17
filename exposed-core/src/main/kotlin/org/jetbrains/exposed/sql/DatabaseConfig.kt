@@ -1,5 +1,6 @@
 package org.jetbrains.exposed.sql
 
+import org.jetbrains.exposed.sql.statements.api.DatabaseApi
 import org.jetbrains.exposed.sql.vendors.DatabaseDialect
 
 /**
@@ -194,3 +195,7 @@ class DatabaseConfig private constructor(
         }
     }
 }
+
+/** Returns the name of the database obtained from its connection URL. */
+val DatabaseApi.name: String
+    get() = url.substringBefore('?').substringAfterLast('/')

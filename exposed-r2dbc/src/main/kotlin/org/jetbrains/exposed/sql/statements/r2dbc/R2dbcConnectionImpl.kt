@@ -120,7 +120,7 @@ class R2dbcConnectionImpl(
         return preparedSQL
     }
 
-    override fun executeInBatch(sqls: List<String>) {
+    override suspend fun executeInBatch(sqls: List<String>) {
         val types = sqls.map { stmt ->
             StatementType.entries.find {
                 stmt.startsWith(it.name, true)

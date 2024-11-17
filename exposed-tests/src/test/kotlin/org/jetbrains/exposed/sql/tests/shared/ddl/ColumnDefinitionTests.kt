@@ -2,6 +2,7 @@ package org.jetbrains.exposed.sql.tests.shared.ddl
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.StatementType
+import org.jetbrains.exposed.sql.statements.jdbc.JdbcResult
 import org.jetbrains.exposed.sql.tests.DatabaseTestsBase
 import org.jetbrains.exposed.sql.tests.TestDB
 import org.jetbrains.exposed.sql.tests.shared.assertEquals
@@ -171,18 +172,18 @@ class ColumnDefinitionTests : DatabaseTestsBase() {
             }
 
             // an invisible column is only returned in ResultSet if explicitly named
-            val result1 = tester.selectAll().where { tester.amount greater 100 }.execute(this)
+            val result1 = tester.selectAll().where { tester.amount greater 100 }.execute(this) as JdbcResult
             assertNotNull(result1)
             result1.next()
-            assertEquals(999, result1.getInt(tester.amount.name))
-            assertFalse(result1.getBoolean(tester.active.name))
+            assertEquals(999, result1.getObject(tester.amount.name).toString().toInt())
+            assertFalse(result1.getObject(tester.active.name).toString().toBoolean())
             result1.close()
 
             val result2 = tester.selectImplicitAll().where { tester.amount greater 100 }.execute(this)
             assertNotNull(result2)
             result2.next()
-            assertEquals(999, result2.getInt(tester.amount.name))
-            expectException<SQLException> { result2.getBoolean(tester.active.name) }
+            assertEquals(999, result2.getObject(tester.amount.name).toString().toInt())
+            expectException<SQLException> { result2.getObject(tester.active.name).toString().toBoolean() }
             result2.close()
         }
     }

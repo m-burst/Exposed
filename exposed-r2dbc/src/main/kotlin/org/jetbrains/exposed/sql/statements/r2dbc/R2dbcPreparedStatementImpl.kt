@@ -13,7 +13,6 @@ import org.jetbrains.exposed.sql.statements.StatementResult
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
 import java.io.InputStream
 import java.math.BigDecimal
-import java.sql.ResultSet
 import java.time.Duration
 import java.util.*
 
@@ -25,7 +24,7 @@ class R2dbcPreparedStatementImpl(
     val connection: Connection,
     val wasGeneratedKeysRequested: Boolean
 ) : PreparedStatementApi {
-    override val resultSet: ResultSet?
+    override val resultSet: R2dbcResult?
         get() = TODO("Not yet implemented")
     // this should probably also SUSPEND
 //        get() {
@@ -51,13 +50,13 @@ class R2dbcPreparedStatementImpl(
         statement.add() // is this technically correct?
     }
 
-    override fun executeQuery(): ResultSet {
+    override suspend fun executeQuery(): R2dbcResult {
         TODO("Not yet implemented")
 //        val result = statement.execute().awaitFirst()
 //        return ResultSet(result)
     }
 
-    override fun executeUpdate(): Int = runBlocking {
+    override suspend fun executeUpdate(): Int = runBlocking {
         flow {
             statement
                 .execute()
@@ -69,7 +68,7 @@ class R2dbcPreparedStatementImpl(
         }.single()
     }
 
-    override fun executeMultiple(): List<StatementResult> = TODO("Not yet implemented")
+    override suspend fun executeMultiple(): List<StatementResult> = TODO("Not yet implemented")
 
     override fun set(index: Int, value: Any) {
         statement.bind(index - 1, value)
@@ -122,7 +121,7 @@ class R2dbcPreparedStatementImpl(
         // do nothing
     }
 
-    override fun executeBatch(): List<Int> = TODO("Not yet implemented")
+    override suspend fun executeBatch(): List<Int> = TODO("Not yet implemented")
 
     override fun cancel() {
         TODO("Not yet implemented")

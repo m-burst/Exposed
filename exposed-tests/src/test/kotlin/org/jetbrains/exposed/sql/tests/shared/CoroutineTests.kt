@@ -204,7 +204,7 @@ class CoroutineTests : DatabaseTestsBase() {
                             Testing.selectAll().where { Testing.id.eq(1) }.singleOrNull()?.getOrNull(Testing.id)
                         )
 
-                        insertTesting(db)
+                        insertTesting(db as Database)
 
                         assertEquals(
                             1,

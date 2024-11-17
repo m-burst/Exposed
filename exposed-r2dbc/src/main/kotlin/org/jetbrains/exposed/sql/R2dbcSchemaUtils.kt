@@ -1,15 +1,18 @@
 package org.jetbrains.exposed.sql
 
+import kotlinx.coroutines.flow.toList
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.statements.api.SchemaUtilityApi
+import org.jetbrains.exposed.sql.transactions.R2dbcTransaction
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.vendors.H2Dialect
 import org.jetbrains.exposed.sql.vendors.MysqlDialect
 import org.jetbrains.exposed.sql.vendors.currentDialect
 
+// THIS is currently only called like this in order to not cause ambiguity in jdbc metadata comparison tests
 /** Utility functions that assist with creating, altering, and dropping database schema objects. */
 @Suppress("TooManyFunctions", "LargeClass")
-object SchemaUtils : SchemaUtilityApi() {
+object R2dbcSchemaUtils : SchemaUtilityApi() {
     /** Returns a list of [tables] sorted according to the targets of their foreign key constraints, if any exist. */
     fun sortTablesByReferences(tables: Iterable<Table>): List<Table> {
         @OptIn(InternalApi::class)
@@ -23,34 +26,37 @@ object SchemaUtils : SchemaUtilityApi() {
     }
 
     /** Returns the SQL statements that create all [tables] that do not already exist. */
-    fun createStatements(vararg tables: Table): List<String> {
-        if (tables.isEmpty()) return emptyList()
-
-        val toCreate = sortTablesByReferences(tables.toList()).filterNot { it.exists() }
-        val alters = arrayListOf<String>()
-
-        @OptIn(InternalApi::class)
-        return toCreate.flatMap { table ->
-            val existingAutoIncSeq = table.autoIncColumn?.autoIncColumnType?.sequence?.takeIf {
-                currentDialect.sequenceExists(it)
-            }
-            val (create, alter) = tableDdlWithoutExistingSequence(table, existingAutoIncSeq)
-            alters += alter
-            create
-        } + alters
-    }
+//    suspend fun createStatements(vararg tables: Table): List<String> {
+//        if (tables.isEmpty()) return emptyList()
+//
+//        val toCreate = sortTablesByReferences(tables.toList()).filterNot {
+//            it.exists() // unresolved error, naming issue?
+//        }
+//        val alters = arrayListOf<String>()
+//
+//        @OptIn(InternalApi::class)
+//        return toCreate.flatMap { table ->
+//            val existingAutoIncSeq = table.autoIncColumn?.autoIncColumnType?.sequence?.takeIf {
+//                currentDialect.sequenceExists(it)
+//            }
+//            val (create, alter) = tableDdlWithoutExistingSequence(table, existingAutoIncSeq)
+//            alters += alter
+//            create
+//        } + alters
+//    }
 
     /** Creates the provided sequences, using a batch execution if [inBatch] is set to `true`. */
-    fun createSequence(vararg seq: Sequence, inBatch: Boolean = false) {
-        with(TransactionManager.current()) {
+    suspend fun createSequence(vararg seq: Sequence, inBatch: Boolean = false) {
+        // NEED to potentially adjust this as the TransactionManager interface level
+        with(TransactionManager.current() as R2dbcTransaction) {
             val createStatements = seq.flatMap { it.createStatement() }
             execStatements(inBatch, createStatements)
         }
     }
 
     /** Drops the provided sequences, using a batch execution if [inBatch] is set to `true`. */
-    fun dropSequence(vararg seq: Sequence, inBatch: Boolean = false) {
-        with(TransactionManager.current()) {
+    suspend fun dropSequence(vararg seq: Sequence, inBatch: Boolean = false) {
+        with(TransactionManager.current() as R2dbcTransaction) {
             val dropStatements = seq.flatMap { it.dropStatement() }
             execStatements(inBatch, dropStatements)
         }
@@ -75,7 +81,7 @@ object SchemaUtils : SchemaUtilityApi() {
      * **Note:** Some dialects, like SQLite, do not support `ALTER TABLE ADD COLUMN` syntax completely.
      * Please check the documentation.
      */
-    fun addMissingColumnsStatements(vararg tables: Table, withLogs: Boolean = true): List<String> {
+    suspend fun addMissingColumnsStatements(vararg tables: Table, withLogs: Boolean = true): List<String> {
         if (tables.isEmpty()) return emptyList()
 
         val statements = ArrayList<String>()
@@ -113,7 +119,7 @@ object SchemaUtils : SchemaUtilityApi() {
         return statements
     }
 
-    private fun Transaction.execStatements(inBatch: Boolean, statements: List<String>) {
+    private suspend fun R2dbcTransaction.execStatements(inBatch: Boolean, statements: List<String>) {
         if (inBatch) {
             execInBatch(statements)
         } else {
@@ -124,9 +130,10 @@ object SchemaUtils : SchemaUtilityApi() {
     }
 
     /** Creates all [tables] that do not already exist, using a batch execution if [inBatch] is set to `true`. */
-    fun <T : Table> create(vararg tables: T, inBatch: Boolean = false) {
-        with(TransactionManager.current()) {
-            execStatements(inBatch, createStatements(*tables))
+    @Suppress("UnusedParameter")
+    suspend fun <T : Table> create(vararg tables: T, inBatch: Boolean = false) {
+        with(TransactionManager.current() as R2dbcTransaction) {
+//            execStatements(inBatch, createStatements(*tables))
             commit()
             currentDialect.resetCaches()
         }
@@ -142,8 +149,8 @@ object SchemaUtils : SchemaUtilityApi() {
      * and followed by connection.autoCommit = false.
      * @see org.jetbrains.exposed.sql.tests.shared.ddl.CreateDatabaseTest
      */
-    fun createDatabase(vararg databases: String, inBatch: Boolean = false) {
-        val transaction = TransactionManager.current()
+    suspend fun createDatabase(vararg databases: String, inBatch: Boolean = false) {
+        val transaction = TransactionManager.current() as R2dbcTransaction
         try {
             with(transaction) {
                 val createStatements = databases.flatMap { listOf(currentDialect.createDatabase(it)) }
@@ -166,16 +173,12 @@ object SchemaUtils : SchemaUtilityApi() {
      *
      * @return A list of strings representing the names of all databases.
      */
-    fun listDatabases(): List<String> {
-        val transaction = TransactionManager.current()
+    suspend fun listDatabases(): List<String> {
+        val transaction = TransactionManager.current() as R2dbcTransaction
         return with(transaction) {
             exec(currentDialect.listDatabases()) {
-                val result = mutableListOf<String>()
-                while (it.next()) {
-                    result.add(it.getString(1).lowercase())
-                }
-                result
-            } ?: emptyList()
+                it.get(1).toString().lowercase()
+            }?.toList()?.filterNotNull() ?: emptyList()
         }
     }
 
@@ -189,11 +192,11 @@ object SchemaUtils : SchemaUtilityApi() {
      * and followed by connection.autoCommit = false.
      * @see org.jetbrains.exposed.sql.tests.shared.ddl.CreateDatabaseTest
      */
-    fun dropDatabase(vararg databases: String, inBatch: Boolean = false) {
-        val transaction = TransactionManager.current()
+    suspend fun dropDatabase(vararg databases: String, inBatch: Boolean = false) {
+        val transaction = TransactionManager.current() as R2dbcTransaction
         try {
             with(transaction) {
-                val createStatements = databases.flatMap { listOf(currentDialect.dropDatabase(it)) }
+                val createStatements = databases.flatMap { listOf(org.jetbrains.exposed.sql.vendors.currentDialect.dropDatabase(it)) }
                 execStatements(inBatch, createStatements)
             }
         } catch (exception: ExposedSQLException) {
@@ -231,17 +234,18 @@ object SchemaUtils : SchemaUtilityApi() {
      * to use a lock based on synchronization with a dummy table.
      * @see SchemaUtils.withDataBaseLock
      */
-    fun createMissingTablesAndColumns(vararg tables: Table, inBatch: Boolean = false, withLogs: Boolean = true) {
-        with(TransactionManager.current()) {
+    suspend fun createMissingTablesAndColumns(vararg tables: Table, inBatch: Boolean = false, withLogs: Boolean = true) {
+        with(TransactionManager.current() as R2dbcTransaction) {
             db.dialect.resetCaches()
             @OptIn(InternalApi::class)
             val createStatements = logTimeSpent(createTablesLogMessage, withLogs) {
-                createStatements(*tables)
+//                createStatements(*tables)
+                emptyList<String>()
             }
 
             @OptIn(InternalApi::class)
             logTimeSpent(executeCreateTablesLogMessage, withLogs) {
-                execStatements(inBatch, createStatements)
+//                execStatements(inBatch, createStatements)
                 commit()
             }
 
@@ -251,21 +255,25 @@ object SchemaUtils : SchemaUtilityApi() {
             }
 
             @OptIn(InternalApi::class)
-            logTimeSpent(executeAlterTablesLogMessage, withLogs) {
-                execStatements(inBatch, alterStatements)
-                commit()
-            }
+            (
+                logTimeSpent(executeAlterTablesLogMessage, withLogs) {
+                    execStatements(inBatch, alterStatements)
+                    commit()
+                }
+                )
             val executedStatements = createStatements + alterStatements
 
             @OptIn(InternalApi::class)
-            logTimeSpent(mappingConsistenceLogMessage, withLogs) {
-                val modifyTablesStatements = checkMappingConsistence(
-                    tables = tables,
-                    withLogs
-                ).filter { it !in executedStatements }
-                execStatements(inBatch, modifyTablesStatements)
-                commit()
-            }
+            (
+                logTimeSpent(mappingConsistenceLogMessage, withLogs) {
+                    val modifyTablesStatements = checkMappingConsistence(
+                        tables = tables,
+                        withLogs
+                    ).filter { it !in executedStatements }
+                    execStatements(inBatch, modifyTablesStatements)
+                    commit()
+                }
+                )
             db.dialect.resetCaches()
         }
     }
@@ -280,34 +288,34 @@ object SchemaUtils : SchemaUtilityApi() {
      * By default, a description for each intermediate step, as well as its execution time, is logged at the INFO level.
      * This can be disabled by setting [withLogs] to `false`.
      */
-    fun statementsRequiredToActualizeScheme(vararg tables: Table, withLogs: Boolean = true): List<String> {
-        val (tablesToCreate, tablesToAlter) = tables.partition { !it.exists() }
-
-        @OptIn(InternalApi::class)
-        val createStatements = logTimeSpent(createTablesLogMessage, withLogs) {
-            createStatements(tables = tablesToCreate.toTypedArray())
-        }
-
-        @OptIn(InternalApi::class)
-        val alterStatements = logTimeSpent(alterTablesLogMessage, withLogs) {
-            addMissingColumnsStatements(tables = tablesToAlter.toTypedArray(), withLogs)
-        }
-        val executedStatements = createStatements + alterStatements
-
-        @OptIn(InternalApi::class)
-        val modifyTablesStatements = logTimeSpent(mappingConsistenceLogMessage, withLogs) {
-            checkMappingConsistence(
-                tables = tablesToAlter.toTypedArray(),
-                withLogs
-            ).filter { it !in executedStatements }
-        }
-        return executedStatements + modifyTablesStatements
-    }
+//    suspend fun statementsRequiredToActualizeScheme(vararg tables: Table, withLogs: Boolean = true): List<String> {
+//        val (tablesToCreate, tablesToAlter) = tables.partition { !it.exists() }
+//
+//        @OptIn(InternalApi::class)
+//        val createStatements = logTimeSpent(createTablesLogMessage, withLogs) {
+//            createStatements(tables = tablesToCreate.toTypedArray())
+//        }
+//
+//        @OptIn(InternalApi::class)
+//        val alterStatements = logTimeSpent(alterTablesLogMessage, withLogs) {
+//            addMissingColumnsStatements(tables = tablesToAlter.toTypedArray(), withLogs)
+//        }
+//        val executedStatements = createStatements + alterStatements
+//
+//        @OptIn(InternalApi::class)
+//        val modifyTablesStatements = logTimeSpent(mappingConsistenceLogMessage, withLogs) {
+//            checkMappingConsistence(
+//                tables = tablesToAlter.toTypedArray(),
+//                withLogs
+//            ).filter { it !in executedStatements }
+//        }
+//        return executedStatements + modifyTablesStatements
+//    }
 
     /**
      * Log Exposed table mappings <-> real database mapping problems and returns DDL Statements to fix them
      */
-    fun checkMappingConsistence(vararg tables: Table, withLogs: Boolean = true): List<String> {
+    suspend fun checkMappingConsistence(vararg tables: Table, withLogs: Boolean = true): List<String> {
         if (withLogs) {
             checkExcessiveForeignKeyConstraints(tables = tables, withLogs = true)
             checkExcessiveIndices(tables = tables, withLogs = true)
@@ -321,7 +329,7 @@ object SchemaUtils : SchemaUtilityApi() {
      *
      * @return List of indices that are excessive and can be dropped.
      */
-    fun checkExcessiveIndices(vararg tables: Table, withLogs: Boolean): List<Index> {
+    suspend fun checkExcessiveIndices(vararg tables: Table, withLogs: Boolean): List<Index> {
         val existingIndices = currentDialect.existingIndices(*tables)
 
         @OptIn(InternalApi::class)
@@ -334,7 +342,7 @@ object SchemaUtils : SchemaUtilityApi() {
      *
      * @return List of foreign key constraints that are excessive and can be dropped.
      */
-    fun checkExcessiveForeignKeyConstraints(vararg tables: Table, withLogs: Boolean): List<ForeignKeyConstraint> {
+    suspend fun checkExcessiveForeignKeyConstraints(vararg tables: Table, withLogs: Boolean): List<ForeignKeyConstraint> {
         val excessiveConstraints = currentDialect.columnConstraints(*tables)
 
         @OptIn(InternalApi::class)
@@ -366,37 +374,37 @@ object SchemaUtils : SchemaUtilityApi() {
      * All code provided in _body_ closure will be executed only if there is no another code which running under "withDataBaseLock" at same time.
      * That means that concurrent execution of long-running tasks under "database lock" might lead to that only first of them will be really executed.
      */
-    fun <T> Transaction.withDataBaseLock(body: () -> T) {
-        val buzyTable = object : Table("busy") {
-            val busy = bool("busy").uniqueIndex()
-        }
-        create(buzyTable)
-        val isBusy = buzyTable.selectAll().forUpdate().any()
-        if (!isBusy) {
-            buzyTable.insert { it[buzyTable.busy] = true }
-            try {
-                body()
-            } finally {
-                buzyTable.deleteAll()
-                connection.commit()
-            }
-        }
-    }
+//    suspend fun <T> Transaction.withDataBaseLock(body: () -> T) {
+//        val buzyTable = object : Table("busy") {
+//            val busy = bool("busy").uniqueIndex()
+//        }
+//        create(buzyTable)
+//        val isBusy = buzyTable.selectAll().forUpdate().any()
+//        if (!isBusy) {
+//            buzyTable.insert { it[buzyTable.busy] = true }
+//            try {
+//                body()
+//            } finally {
+//                buzyTable.deleteAll()
+//                connection.commit()
+//            }
+//        }
+//    }
 
     /**
      * Retrieves a list of all table names in the current database.
      *
      * @return A list of table names as strings.
      */
-    fun listTables(): List<String> = currentDialect.allTablesNames()
+    suspend fun listTables(): List<String> = currentDialect.allTablesNames()
 
     /** Drops all [tables], using a batch execution if [inBatch] is set to `true`. */
-    fun drop(vararg tables: Table, inBatch: Boolean = false) {
+    suspend fun drop(vararg tables: Table, inBatch: Boolean = false) {
         if (tables.isEmpty()) return
-        with(TransactionManager.current()) {
+        with(TransactionManager.current() as R2dbcTransaction) {
             var tablesForDeletion = sortTablesByReferences(tables.toList()).reversed().filter { it in tables }
             if (!currentDialect.supportsIfNotExists) {
-                tablesForDeletion = tablesForDeletion.filter { it.exists() }
+//                tablesForDeletion = tablesForDeletion.filter { it.exists() }
             }
             val dropStatements = tablesForDeletion.flatMap { it.dropStatement() }
             execStatements(inBatch, dropStatements)
@@ -410,8 +418,8 @@ object SchemaUtils : SchemaUtilityApi() {
      *
      * @sample org.jetbrains.exposed.sql.tests.shared.SchemaTests
      */
-    fun setSchema(schema: Schema, inBatch: Boolean = false) {
-        with(TransactionManager.current()) {
+    suspend fun setSchema(schema: Schema, inBatch: Boolean = false) {
+        with(TransactionManager.current() as R2dbcTransaction) {
             val createStatements = schema.setSchemaStatement()
 
             execStatements(inBatch, createStatements)
@@ -435,9 +443,9 @@ object SchemaUtils : SchemaUtilityApi() {
      * @param schemas the names of the schemas
      * @param inBatch flag to perform schema creation in a single batch
      */
-    fun createSchema(vararg schemas: Schema, inBatch: Boolean = false) {
+    suspend fun createSchema(vararg schemas: Schema, inBatch: Boolean = false) {
         if (schemas.isEmpty()) return
-        with(TransactionManager.current()) {
+        with(TransactionManager.current() as R2dbcTransaction) {
             val toCreate = schemas.distinct().filterNot { it.exists() }
             val createStatements = toCreate.flatMap { it.createStatement() }
             execStatements(inBatch, createStatements)
@@ -460,9 +468,9 @@ object SchemaUtils : SchemaUtilityApi() {
      * dropped regardless of the flag's value.
      * @param inBatch flag to perform schema creation in a single batch
      */
-    fun dropSchema(vararg schemas: Schema, cascade: Boolean = false, inBatch: Boolean = false) {
+    suspend fun dropSchema(vararg schemas: Schema, cascade: Boolean = false, inBatch: Boolean = false) {
         if (schemas.isEmpty()) return
-        with(TransactionManager.current()) {
+        with(TransactionManager.current() as R2dbcTransaction) {
             val schemasForDeletion = if (currentDialect.supportsIfNotExists) {
                 schemas.distinct()
             } else {

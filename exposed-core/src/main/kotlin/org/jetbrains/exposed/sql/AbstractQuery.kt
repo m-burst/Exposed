@@ -3,13 +3,13 @@ package org.jetbrains.exposed.sql
 import org.jetbrains.exposed.sql.statements.Statement
 import org.jetbrains.exposed.sql.statements.StatementIterator
 import org.jetbrains.exposed.sql.statements.StatementType
+import org.jetbrains.exposed.sql.statements.api.ResultApi
 import org.jetbrains.exposed.sql.transactions.TransactionManager
-import java.sql.ResultSet
 
-/** Base class representing an SQL query that returns a [ResultSet] when executed. */
+/** Base class representing an SQL query that returns a [ResultApi] when executed. */
 abstract class AbstractQuery<T : AbstractQuery<T>>(
     targets: List<Table>
-) : SizedIterable<ResultRow>, Statement<ResultSet>(StatementType.SELECT, targets) {
+) : SizedIterable<ResultRow>, Statement<ResultApi>(StatementType.SELECT, targets) {
     protected val transaction
         get() = TransactionManager.current()
 
@@ -88,7 +88,7 @@ abstract class AbstractQuery<T : AbstractQuery<T>>(
 
     protected var count: Boolean = false
 
-    protected abstract val queryToExecute: Statement<ResultSet>
+    protected abstract val queryToExecute: Statement<ResultApi>
 
     override fun iterator(): Iterator<ResultRow> {
         val resultIterator = ResultIterator(transaction.exec(queryToExecute)!!)
@@ -99,7 +99,7 @@ abstract class AbstractQuery<T : AbstractQuery<T>>(
         }
     }
 
-    private inner class ResultIterator(rs: ResultSet) : StatementIterator<Expression<*>, ResultRow>(rs) {
+    private inner class ResultIterator(rs: ResultApi) : StatementIterator<Expression<*>, ResultRow>(rs) {
         override val fieldIndex = set.realFields.toSet()
             .mapIndexed { index, expression -> expression to index }
             .toMap()

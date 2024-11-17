@@ -44,7 +44,7 @@ abstract class PropertyProvider {
     open val supportsAlterTableWithDropColumn: Boolean
         get() = true
 
-    /** Returns whether getting multiple ResultSet objects is supported from a single execution. */
+    /** Returns whether getting multiple R2dbcResult objects is supported from a single execution. */
     open val supportsMultipleResultSets: Boolean
         get() = true
 

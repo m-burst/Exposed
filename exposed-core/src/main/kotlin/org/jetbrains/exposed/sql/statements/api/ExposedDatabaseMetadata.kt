@@ -5,7 +5,6 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.vendors.*
 import org.jetbrains.exposed.sql.vendors.H2Dialect.H2CompatibilityMode
 import java.math.BigDecimal
-import java.sql.ResultSet
 
 /**
  * Base class responsible for retrieving and storing information about the driver and underlying [database].
@@ -209,30 +208,6 @@ abstract class ExposedDatabaseMetadata(val database: String) {
         }
     }
 
-    /** Returns a full table name in proper case from a result retrieved from the database. */
-    @InternalApi
-    protected fun ResultSet.parseTableName(dialect: DatabaseDialect): String {
-        val tableName = getString("TABLE_NAME")!!
-        val fullTableName = when (dialect) {
-            is MysqlDialect -> getString("TABLE_CAT")?.let { "$it.$tableName" }
-            else -> getString("TABLE_SCHEM")?.let { "$it.$tableName" }
-        } ?: tableName
-        return identifierManager.inProperCase(fullTableName)
-    }
-
-    /** Returns [ColumnMetadata] from a result retrieved from the database. */
-    @InternalApi
-    protected fun ResultSet.parseColumnMetadata(): ColumnMetadata {
-        val defaultDbValue = getString("COLUMN_DEF")?.let { sanitizedDefault(it) }
-        val autoIncrement = getString("IS_AUTOINCREMENT") == "YES"
-        val type = getInt("DATA_TYPE")
-        val name = getString("COLUMN_NAME")
-        val nullable = getBoolean("NULLABLE")
-        val size = getInt("COLUMN_SIZE").takeIf { it != 0 }
-        val scale = getInt("DECIMAL_DIGITS").takeIf { it != 0 }
-        return ColumnMetadata(name, type, nullable, size, scale, autoIncrement, defaultDbValue?.takeIf { !autoIncrement })
-    }
-
     /** Filters a map of index details to exclude key column indices and returns each entry as an [Index]. */
     @InternalApi
     protected fun HashMap<Triple<String, Boolean, Op.TRUE?>, MutableList<String>>.filterKeysAndParse(
@@ -300,7 +275,8 @@ abstract class ExposedDatabaseMetadata(val database: String) {
      *
      * @return `null` - if the value was set to `null` or not configured. `defaultValue` in other case.
      */
-    private fun sanitizedDefault(defaultValue: String): String? {
+    @InternalApi
+    protected fun sanitizedDefault(defaultValue: String): String? {
         val dialect = currentDialect
         val h2Mode = dialect.h2Mode
         return when {

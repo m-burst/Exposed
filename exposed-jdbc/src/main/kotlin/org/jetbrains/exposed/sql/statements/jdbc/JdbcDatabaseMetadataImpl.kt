@@ -4,6 +4,7 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.api.ExposedDatabaseMetadata
 import org.jetbrains.exposed.sql.statements.api.IdentifierManagerApi
+import org.jetbrains.exposed.sql.transactions.JdbcTransaction
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.vendors.*
 import org.jetbrains.exposed.sql.vendors.H2Dialect.H2CompatibilityMode
@@ -50,7 +51,7 @@ class JdbcDatabaseMetadataImpl(database: String, val metadata: DatabaseMetaData)
 
                 @Language("H2")
                 val modeQuery = "SELECT $settingValueField FROM INFORMATION_SCHEMA.SETTINGS WHERE $settingNameField = 'MODE'"
-                TransactionManager.current().exec(modeQuery) { rs ->
+                (TransactionManager.current() as JdbcTransaction).exec(modeQuery) { rs ->
                     rs.next()
                     rs.getString(settingValueField)
                 }
@@ -91,9 +92,13 @@ class JdbcDatabaseMetadataImpl(database: String, val metadata: DatabaseMetaData)
     private fun tableNamesFor(schema: String): List<String> = with(metadata) {
         val dialect = currentDialect
         val (catalogName, schemeName) = catalogAndSchemaArgs(schema, dialect)
-        val resultSet = getTables(catalogName, schemeName, "%", arrayOf("TABLE"))
-        return resultSet.iterate {
-            parseTableName(dialect)
+        return getTables(catalogName, schemeName, "%", arrayOf("TABLE")).iterate {
+            val tableName = getString("TABLE_NAME")!!
+            val fullTableName = when (dialect) {
+                is MysqlDialect -> getString("TABLE_CAT")?.let { "$it.$tableName" }
+                else -> getString("TABLE_SCHEM")?.let { "$it.$tableName" }
+            } ?: tableName
+            identifierManager.inProperCase(fullTableName)
         }
     }
 
@@ -118,7 +123,14 @@ class JdbcDatabaseMetadataImpl(database: String, val metadata: DatabaseMetaData)
     @InternalApi
     override fun columnsMetadata(catalog: String, schema: String, table: Table): List<ColumnMetadata> {
         return metadata.getColumns(catalog, schema, table.nameInDatabaseCaseUnquoted(), "%").iterate {
-            parseColumnMetadata()
+            val defaultDbValue = getString("COLUMN_DEF")?.let { sanitizedDefault(it) }
+            val autoIncrement = getString("IS_AUTOINCREMENT") == "YES"
+            val type = getInt("DATA_TYPE")
+            val name = getString("COLUMN_NAME")
+            val nullable = getBoolean("NULLABLE")
+            val size = getInt("COLUMN_SIZE")?.takeIf { it != 0 }
+            val scale = getInt("DECIMAL_DIGITS")?.takeIf { it != 0 }
+            ColumnMetadata(name, type, nullable, size, scale, autoIncrement, defaultDbValue?.takeIf { !autoIncrement })
         }
     }
 
@@ -203,7 +215,7 @@ class JdbcDatabaseMetadataImpl(database: String, val metadata: DatabaseMetaData)
     @Suppress("MagicNumber")
     override fun sequences(): List<String> {
         val dialect = currentDialect
-        val transaction = TransactionManager.current()
+        val transaction = TransactionManager.current() as JdbcTransaction
         @OptIn(InternalApi::class)
         return when (dialect) {
             is OracleDialect -> transaction.exec("SELECT SEQUENCE_NAME FROM USER_SEQUENCES") { rs ->
@@ -235,7 +247,7 @@ class JdbcDatabaseMetadataImpl(database: String, val metadata: DatabaseMetaData)
         val allTableNames = allTables.keys
         val isMysqlDialect = currentDialect is MysqlDialect
         return if (isMysqlDialect) {
-            val tx = TransactionManager.current()
+            val tx = TransactionManager.current() as JdbcTransaction
             val inTableList = allTableNames.joinToString("','", prefix = " ku.TABLE_NAME IN ('", postfix = "')")
             val tableSchema = "'${tables.mapNotNull { it.schemaName }.toSet().singleOrNull() ?: tx.connection.catalog}'"
             val constraintsToLoad = HashMap<String, MutableMap<String, ForeignKeyConstraint>>()

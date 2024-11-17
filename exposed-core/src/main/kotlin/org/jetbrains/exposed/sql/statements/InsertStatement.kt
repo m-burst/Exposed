@@ -2,10 +2,11 @@ package org.jetbrains.exposed.sql.statements
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
+import org.jetbrains.exposed.sql.statements.api.ResultApi
 import org.jetbrains.exposed.sql.transactions.TransactionManager
-import org.jetbrains.exposed.sql.vendors.*
+import org.jetbrains.exposed.sql.vendors.PostgreSQLDialect
+import org.jetbrains.exposed.sql.vendors.currentDialect
 import org.jetbrains.exposed.sql.vendors.inProperCase
-import java.sql.ResultSet
 import java.sql.SQLException
 import kotlin.properties.Delegates
 
@@ -52,7 +53,7 @@ open class InsertStatement<Key : Any>(
      */
     fun <T> getOrNull(column: Column<T>): T? = resultedValues?.firstOrNull()?.getOrNull(column)
 
-    private fun processResults(rs: ResultSet?, inserted: Int): List<ResultRow> {
+    private fun processResults(rs: ResultApi?, inserted: Int): List<ResultRow> {
         val allResultSetsValues = rs?.returnedValues(inserted)
 
         @Suppress("UNCHECKED_CAST")
@@ -85,7 +86,7 @@ open class InsertStatement<Key : Any>(
     }
 
     @Suppress("NestedBlockDepth", "TooGenericExceptionCaught")
-    private fun ResultSet.returnedValues(inserted: Int): ArrayList<MutableMap<Column<*>, Any?>> {
+    private fun ResultApi.returnedValues(inserted: Int): ArrayList<MutableMap<Column<*>, Any?>> {
         if (inserted == 0) return arrayListOf()
 
         val resultSetsValues = arrayListOf<MutableMap<Column<*>, Any?>>()
@@ -112,7 +113,9 @@ open class InsertStatement<Key : Any>(
                     val preparedSql = prepareSQL(TransactionManager.current(), prepared = true)
 
                     val returnedColumnsString = columnIndexesInResultSet
-                        .mapIndexed { index, pair -> "column: ${pair.first.name}, index: ${pair.second} (columns-list-index: $index)" }
+                        .mapIndexed { index, pair ->
+                            "column: ${pair.first.name}, index: ${pair.second} (columns-list-index: $index)"
+                        }
                         .joinToString(prefix = "[", postfix = "]", separator = ", ")
 
                     exposedLogger.error(
@@ -149,15 +152,20 @@ open class InsertStatement<Key : Any>(
         return resultSetsValues
     }
 
-    /**
-     * Returns indexes of the table columns in [ResultSet]
-     */
-    private fun ResultSet?.returnedColumns() = (if (currentDialect.supportsOnlyIdentifiersInGeneratedKeys) autoIncColumns else table.columns).mapNotNull { col ->
-        @Suppress("SwallowedException")
-        try {
-            this?.findColumn(col.name)?.let { col to it }
-        } catch (e: SQLException) {
-            null
+    /** Returns indexes of the table columns in [ResultApi]. */
+    private fun ResultApi?.returnedColumns(): List<Pair<Column<*>, Int>> {
+        val resultColumns = if (currentDialect.supportsOnlyIdentifiersInGeneratedKeys) {
+            autoIncColumns
+        } else {
+            table.columns
+        }
+        return resultColumns.mapNotNull { col ->
+            @Suppress("SwallowedException")
+            try {
+                this?.metadataColumnIndex(col.name)?.let { col to it }
+            } catch (e: SQLException) {
+                null
+            }
         }
     }
 
@@ -226,7 +234,8 @@ open class InsertStatement<Key : Any>(
         }
     }
 
-    protected open fun PreparedStatementApi.execInsertFunction(): Pair<Int, ResultSet?> {
+    // potential BREAKING CHANGE
+    protected open suspend fun PreparedStatementApi.execInsertFunction(): Pair<Int, ResultApi?> {
         val inserted = if (arguments().count() > 1 || isAlwaysBatch) executeBatch().sum() else executeUpdate()
         // According to the `processResults()` method when supportsOnlyIdentifiersInGeneratedKeys is false
         // all the columns could be taken from result set
@@ -238,7 +247,7 @@ open class InsertStatement<Key : Any>(
         return inserted to rs
     }
 
-    override fun PreparedStatementApi.executeInternal(transaction: Transaction): Int {
+    override suspend fun PreparedStatementApi.executeInternal(transaction: Transaction): Int {
         val (inserted, rs) = execInsertFunction()
         return inserted.apply {
             insertedCount = this

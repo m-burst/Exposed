@@ -5,13 +5,13 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ThreadContextElement
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.exceptions.ExposedSQLException
+import org.jetbrains.exposed.sql.InternalApi
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.exposedLogger
+import org.jetbrains.exposed.sql.statements.api.DatabaseApi
+import org.jetbrains.exposed.sql.transactions.TransactionInterface
 import org.jetbrains.exposed.sql.transactions.TransactionManager
-import org.jetbrains.exposed.sql.transactions.closeStatementsAndConnection
-import org.jetbrains.exposed.sql.transactions.handleSQLException
-import org.jetbrains.exposed.sql.transactions.rollbackLoggingException
 import org.jetbrains.exposed.sql.transactions.transactionManager
 import java.sql.SQLException
 import java.util.concurrent.ThreadLocalRandom
@@ -55,18 +55,14 @@ internal class TransactionCoroutineElement(
     companion object : CoroutineContext.Key<TransactionCoroutineElement>
 }
 
-/**
- * Creates a new `TransactionScope` then calls the specified suspending [statement], suspends until it completes,
- * and returns the result.
- *
- * The `TransactionScope` is derived from a new `Transaction` and a given coroutine [context],
- * or the current [CoroutineContext] if no [context] is provided.
- *
- * @sample org.jetbrains.exposed.sql.tests.shared.CoroutineTests.suspendedTx
- */
+@Deprecated(
+    "This function will be removed in future releases. Include a dependency on the `exposed-r2dbc` module " +
+        "and use `suspendTransaction()` instead.",
+    level = DeprecationLevel.WARNING
+)
 suspend fun <T> newSuspendedTransaction(
     context: CoroutineContext? = null,
-    db: Database? = null,
+    db: DatabaseApi? = null,
     transactionIsolation: Int? = null,
     statement: suspend Transaction.() -> T
 ): T =
@@ -74,14 +70,11 @@ suspend fun <T> newSuspendedTransaction(
         suspendedTransactionAsyncInternal(true, statement).await()
     }
 
-/**
- * Calls the specified suspending [statement], suspends until it completes, and returns the result.
- *
- * The resulting `TransactionScope` is derived from the current [CoroutineContext] if the latter already holds
- * [this] `Transaction`; otherwise, a new scope is created using [this] `Transaction` and a given coroutine [context].
- *
- * @sample org.jetbrains.exposed.sql.tests.shared.CoroutineTests.suspendedTx
- */
+@Deprecated(
+    "This function will be removed in future releases. Include a dependency on the `exposed-r2dbc` module " +
+        "and use nested `suspendTransaction()` instead.",
+    level = DeprecationLevel.WARNING
+)
 suspend fun <T> Transaction.withSuspendTransaction(
     context: CoroutineContext? = null,
     statement: suspend Transaction.() -> T
@@ -90,17 +83,14 @@ suspend fun <T> Transaction.withSuspendTransaction(
         suspendedTransactionAsyncInternal(false, statement).await()
     }
 
-/**
- * Creates a new `TransactionScope` and returns its future result as an implementation of [Deferred].
- *
- * The `TransactionScope` is derived from a new `Transaction` and a given coroutine [context],
- * or the current [CoroutineContext] if no [context] is provided.
- *
- * @sample org.jetbrains.exposed.sql.tests.shared.CoroutineTests.suspendTxAsync
- */
+@Deprecated(
+    "This function will be removed in future releases. Include a dependency on the `exposed-r2dbc` module " +
+        "and use `suspendTransactionAsync()` instead.",
+    level = DeprecationLevel.WARNING
+)
 suspend fun <T> suspendedTransactionAsync(
     context: CoroutineContext? = null,
-    db: Database? = null,
+    db: DatabaseApi? = null,
     transactionIsolation: Int? = null,
     statement: suspend Transaction.() -> T
 ): Deferred<T> {
@@ -127,13 +117,15 @@ private fun Transaction.closeAsync() {
 private suspend fun <T> withTransactionScope(
     context: CoroutineContext?,
     currentTransaction: Transaction?,
-    db: Database? = null,
+    db: DatabaseApi? = null,
     transactionIsolation: Int?,
     body: suspend TransactionScope.() -> T
 ): T {
     val currentScope = coroutineContext[TransactionScope]
+
+    @OptIn(InternalApi::class)
     suspend fun newScope(currentTransaction: Transaction?): T {
-        val currentDatabase: Database? = currentTransaction?.db ?: db ?: TransactionManager.currentDefaultDatabase.get()
+        val currentDatabase: DatabaseApi? = currentTransaction?.db ?: db ?: TransactionManager.currentDefaultDatabase.get()
         val manager = currentDatabase?.transactionManager ?: TransactionManager.manager
 
         val tx = lazy(LazyThreadSafetyMode.NONE) {
@@ -225,4 +217,63 @@ private fun <T> TransactionScope.suspendedTransactionAsyncInternal(
         }
     }
     answer
+}
+
+// how to handle these internals, alongside deprecations, without duplicating (as done) or propagating opt-ins...
+
+private fun Transaction.getRetryInterval(): Long = if (maxAttempts > 0) {
+    maxOf((maxRetryDelay - minRetryDelay) / (maxAttempts + 1), 1)
+} else {
+    0
+}
+
+@OptIn(InternalApi::class)
+private fun handleSQLException(cause: SQLException, transaction: Transaction, attempts: Int) {
+    val exposedSQLException = cause as? ExposedSQLException
+    val queriesToLog = exposedSQLException?.causedByQueries()?.joinToString(";\n") ?: "${transaction.currentStatement}"
+    val message = "Transaction attempt #$attempts failed: ${cause.message}. Statement(s): $queriesToLog"
+    exposedSQLException?.contexts?.forEach {
+        transaction.loggingInterceptors.forEach { logger ->
+            logger.log(it, transaction)
+        }
+    }
+    exposedLogger.warn(message, cause)
+    transaction.rollbackLoggingException {
+        exposedLogger.warn("Transaction rollback failed: ${it.message}. See previous log line for statement", it)
+    }
+}
+
+private fun closeStatementsAndConnection(transaction: Transaction) {
+    val currentStatement = transaction.currentStatement
+    @Suppress("TooGenericExceptionCaught")
+    try {
+        currentStatement?.let {
+            it.closeIfPossible()
+            transaction.currentStatement = null
+        }
+        transaction.closeExecutedStatements()
+    } catch (cause: Exception) {
+        exposedLogger.warn("Statements close failed", cause)
+    }
+    transaction.closeLoggingException {
+        exposedLogger.warn("Transaction close failed: ${it.message}. Statement: $currentStatement", it)
+    }
+}
+
+@Suppress("TooGenericExceptionCaught")
+private fun TransactionInterface.rollbackLoggingException(log: (Exception) -> Unit) {
+    try {
+        rollback()
+    } catch (e: Exception) {
+        log(e)
+    }
+}
+
+@Suppress("TooGenericExceptionCaught")
+private inline fun TransactionInterface.closeLoggingException(log: (Exception) -> Unit) {
+    try {
+        close()
+    } catch (e: Exception) {
+        log(e)
+    }
 }

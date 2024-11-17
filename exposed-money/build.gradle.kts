@@ -17,6 +17,7 @@ dependencies {
     api(project(":exposed-dao"))
     api(libs.javax.money)
     testImplementation(project(":exposed-dao"))
+    testImplementation(project(":exposed-jdbc"))
     testImplementation(project(":exposed-tests"))
     testImplementation(libs.junit)
     testImplementation(kotlin("test-junit"))

@@ -2,12 +2,12 @@ package org.jetbrains.exposed.sql.r2dbc
 
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.statements.r2dbc.asInt
 import org.jetbrains.exposed.sql.tests.DatabaseTestsBase
 import org.jetbrains.exposed.sql.tests.TestDB
 import org.jetbrains.exposed.sql.tests.currentDialectTest
 import org.jetbrains.exposed.sql.tests.shared.assertEquals
+import org.jetbrains.exposed.sql.transactions.JdbcTransaction
 import org.jetbrains.exposed.sql.vendors.*
 import org.junit.Test
 import java.sql.DatabaseMetaData
@@ -22,12 +22,14 @@ class MetadataTests : DatabaseTestsBase() {
         val item = varchar("item", 32).uniqueIndex()
         val amount = long("amount").nullable()
         val available = bool("available").default(true)
+
         override val primaryKey = PrimaryKey(id)
     }
 
     private object TestTableB : Table("test_table_b") {
         val id = uuid("id")
         val aId = reference("a_id", TestTableA.id)
+
         override val primaryKey = PrimaryKey(id, name = "my_custom_key_name")
     }
 
@@ -46,7 +48,7 @@ class MetadataTests : DatabaseTestsBase() {
         }
     }
 
-    // for some reason, with PostgreSQL for example, this always passes locally but is flaky on TC build
+    // for some reason, with PostgreSQL for example, this always passes locally but occasionally fails on TC build
 //    @Test
 //    fun testKeywords() {
 //        withJdbcMetadata { _, metadata, provider ->
@@ -220,7 +222,7 @@ class MetadataTests : DatabaseTestsBase() {
         return result
     }
 
-    private fun <T> Transaction.executeMetadataQuery(
+    private fun <T> JdbcTransaction.executeMetadataQuery(
         query: String,
         transform: ResultSet.() -> T
     ): MutableList<T>? = exec(query) {
@@ -241,6 +243,7 @@ class MetadataTests : DatabaseTestsBase() {
         val catalogName = getString("TABLE_CAT")
         val schemaName = getString("TABLE_SCHEM")
         val tableName = getString("TABLE_NAME")
+
         return TableMetadata(catalogName, schemaName, tableName)
     }
 
@@ -252,6 +255,7 @@ class MetadataTests : DatabaseTestsBase() {
         val nullable = getBoolean("NULLABLE")
         val size = getInt("COLUMN_SIZE")
         val scale = getInt("DECIMAL_DIGITS")
+
         return ColumnMetadata(name, type, nullable, size, scale, autoIncrement, defaultDbValue)
     }
 
@@ -267,6 +271,7 @@ class MetadataTests : DatabaseTestsBase() {
         val indexName = getString("INDEX_NAME")
         val columnName = getString("COLUMN_NAME")
         val filterCondition = getString("FILTER_CONDITION")
+
         return IndexMetadata(isNotUnique, indexName, columnName, filterCondition)
     }
 
@@ -288,6 +293,7 @@ class MetadataTests : DatabaseTestsBase() {
         val targetColumnName = getString("PKCOLUMN_NAME")
         val updateRule = getInt("UPDATE_RULE")
         val deleteRule = getInt("DELETE_RULE")
+
         return ForeignKeyMetadata(fromTableName, fromColumnName, foreignKeyName, targetTableName, targetColumnName, updateRule, deleteRule)
     }
 }
@@ -296,7 +302,7 @@ class MetadataTests : DatabaseTestsBase() {
 private fun DatabaseTestsBase.withJdbcMetadata(
     vararg table: Table,
     exclude: Collection<TestDB> = emptyList(),
-    body: Transaction.(testDb: TestDB, metadata: DatabaseMetaData, provider: MetadataProvider) -> Unit
+    body: JdbcTransaction.(testDb: TestDB, metadata: DatabaseMetaData, provider: MetadataProvider) -> Unit
 ) {
     val r2bdcUnsupported = TestDB.ALL_H2_V1 + TestDB.SQLITE + TestDB.POSTGRESQLNG
     withDb(excludeSettings = exclude + r2bdcUnsupported) { testDb ->
@@ -310,9 +316,11 @@ private fun DatabaseTestsBase.withJdbcMetadata(
                 in TestDB.ALL_MYSQL -> MySQLMetadata()
                 else -> H2Metadata()
             }
+
             table.takeIf { it.isNotEmpty() }?.let {
                 SchemaUtils.create(tables = it)
             }
+
             body(testDb, jdbcMetadata, provider)
         } finally {
             table.takeIf { it.isNotEmpty() }?.let {
