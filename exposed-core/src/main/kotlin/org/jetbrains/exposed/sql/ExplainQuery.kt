@@ -3,6 +3,7 @@ package org.jetbrains.exposed.sql
 import org.jetbrains.exposed.sql.statements.IStatementBuilder
 import org.jetbrains.exposed.sql.statements.Statement
 import org.jetbrains.exposed.sql.statements.StatementBuilder
+import org.jetbrains.exposed.sql.statements.StatementIterator
 import org.jetbrains.exposed.sql.statements.StatementType
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
 import org.jetbrains.exposed.sql.transactions.TransactionManager
@@ -36,34 +37,16 @@ open class ExplainQuery(
         return Iterable { resultIterator }.iterator()
     }
 
-    private inner class ResultIterator(private val rs: ResultSet) : Iterator<ExplainResultRow> {
-        private val fieldIndex: Map<String, Int> = List(rs.metaData.columnCount) { i ->
-            rs.metaData.getColumnName(i + 1) to i
+    private inner class ResultIterator(rs: ResultSet) : StatementIterator<String, ExplainResultRow>(rs) {
+        override val fieldIndex = List(result.metaData.columnCount) { i ->
+            result.metaData.getColumnName(i + 1) to i
         }.toMap()
 
-        private var hasNext = false
-            set(value) {
-                field = value
-                if (!field) {
-                    val statement = rs.statement
-                    rs.close()
-                    statement?.close()
-                    transaction.openResultSetsCount--
-                }
-            }
-
         init {
-            hasNext = rs.next()
+            hasNext = result.next()
         }
 
-        override fun hasNext(): Boolean = hasNext
-
-        override operator fun next(): ExplainResultRow {
-            if (!hasNext) throw NoSuchElementException()
-            val result = ExplainResultRow.create(rs, fieldIndex)
-            hasNext = rs.next()
-            return result
-        }
+        override fun createResultRow(): ExplainResultRow = ExplainResultRow.create(result, fieldIndex)
     }
 }
 

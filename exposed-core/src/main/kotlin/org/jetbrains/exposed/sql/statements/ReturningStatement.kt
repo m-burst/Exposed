@@ -38,31 +38,14 @@ open class ReturningStatement(
         return Iterable { resultIterator }.iterator()
     }
 
-    private inner class ResultIterator(val rs: ResultSet) : Iterator<ResultRow> {
-        val fieldIndex = returningExpressions.withIndex().associateBy({ it.value }, { it.index })
-
-        private var hasNext = false
-            set(value) {
-                field = value
-                if (!field) {
-                    val statement = rs.statement
-                    rs.close()
-                    statement?.close()
-                    transaction.openResultSetsCount--
-                }
-            }
+    private inner class ResultIterator(rs: ResultSet) : StatementIterator<Expression<*>, ResultRow>(rs) {
+        override val fieldIndex = returningExpressions.withIndex()
+            .associateBy({ it.value }, { it.index })
 
         init {
-            hasNext = rs.next()
+            hasNext = result.next()
         }
 
-        override fun hasNext(): Boolean = hasNext
-
-        override operator fun next(): ResultRow {
-            if (!hasNext) throw NoSuchElementException()
-            val result = ResultRow.create(rs, fieldIndex)
-            hasNext = rs.next()
-            return result
-        }
+        override fun createResultRow(): ResultRow = ResultRow.create(result, fieldIndex)
     }
 }

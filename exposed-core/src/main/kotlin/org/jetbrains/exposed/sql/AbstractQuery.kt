@@ -1,6 +1,7 @@
 package org.jetbrains.exposed.sql
 
 import org.jetbrains.exposed.sql.statements.Statement
+import org.jetbrains.exposed.sql.statements.StatementIterator
 import org.jetbrains.exposed.sql.statements.StatementType
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.sql.ResultSet
@@ -98,33 +99,17 @@ abstract class AbstractQuery<T : AbstractQuery<T>>(
         }
     }
 
-    private inner class ResultIterator(val rs: ResultSet) : Iterator<ResultRow> {
-        private var hasNext = false
-            set(value) {
-                field = value
-                if (!field) {
-                    val statement = rs.statement
-                    rs.close()
-                    statement?.close()
-                    transaction.openResultSetsCount--
-                }
-            }
-
-        private val fieldsIndex = set.realFields.toSet().mapIndexed { index, expression -> expression to index }.toMap()
+    private inner class ResultIterator(rs: ResultSet) : StatementIterator<Expression<*>, ResultRow>(rs) {
+        override val fieldIndex = set.realFields.toSet()
+            .mapIndexed { index, expression -> expression to index }
+            .toMap()
 
         init {
-            hasNext = rs.next()
+            hasNext = result.next()
             if (hasNext) trackResultSet(transaction)
         }
 
-        override operator fun next(): ResultRow {
-            if (!hasNext) throw NoSuchElementException()
-            val result = ResultRow.create(rs, fieldsIndex)
-            hasNext = rs.next()
-            return result
-        }
-
-        override fun hasNext(): Boolean = hasNext
+        override fun createResultRow(): ResultRow = ResultRow.create(result, fieldIndex)
     }
 
     companion object {
