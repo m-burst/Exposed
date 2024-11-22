@@ -3149,15 +3149,9 @@ public class org/jetbrains/exposed/sql/statements/InsertStatement : org/jetbrain
 	public synthetic fun <init> (Lorg/jetbrains/exposed/sql/Table;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun arguments ()Ljava/lang/Iterable;
 	public fun arguments ()Ljava/util/List;
-<<<<<<< HEAD
 	protected final fun clientDefaultColumns ()Ljava/util/List;
-	protected fun execInsertFunction (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;)Lkotlin/Pair;
-	public fun executeInternal (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;Lorg/jetbrains/exposed/sql/Transaction;)Ljava/lang/Integer;
-	public synthetic fun executeInternal (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;Lorg/jetbrains/exposed/sql/Transaction;)Ljava/lang/Object;
-=======
 	protected fun execInsertFunction (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun executeInternal (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;Lorg/jetbrains/exposed/sql/Transaction;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
->>>>>>> 176f69ff4 (feat:! Split common API between JDBC and R2DBC modules)
 	public final fun get (Lorg/jetbrains/exposed/sql/Column;)Ljava/lang/Object;
 	public final fun get (Lorg/jetbrains/exposed/sql/CompositeColumn;)Ljava/lang/Object;
 	public fun getArguments ()Ljava/util/List;
